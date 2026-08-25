@@ -28,6 +28,11 @@ export type Contact = {
   footerNote: string
 }
 
+export type NavItem = {
+  label: string
+  href: string
+}
+
 export type Settings = {
   siteTitle: string
   siteDescription: string
@@ -38,6 +43,7 @@ export type Settings = {
   showAbout: boolean
   showContact: boolean
   footerText: string
+  navItems: NavItem[]
 }
 
 export type HeroContent = Hero
@@ -126,6 +132,11 @@ export const DEFAULT_SETTINGS: Settings = {
   showAbout: true,
   showContact: true,
   footerText: "All rights reserved.",
+  navItems: [
+    { label: "Work", href: "/#work" },
+    { label: "About", href: "/#about" },
+    { label: "Contact", href: "/#contact" },
+  ],
 }
 
 export type ContentKey = "hero" | "about" | "contact" | "settings"

@@ -120,6 +120,40 @@ export function SettingsEditor({
             checked={form.showContact}
             onChange={(v) => set('showContact', v)}
           />
+
+          <Separator />
+
+          <div className="flex flex-col gap-2">
+            <Label>Navigation items</Label>
+            {(form.navItems ?? []).map((item, index) => (
+              <div key={`${item.label}-${index}`} className="grid gap-2 rounded-md border border-border p-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs text-muted-foreground">Label</Label>
+                  <Input
+                    value={item.label}
+                    onChange={(e) => {
+                      const next = [...(form.navItems ?? [])]
+                      next[index] = { ...item, label: e.target.value }
+                      set('navItems', next)
+                    }}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs text-muted-foreground">Link</Label>
+                  <Input
+                    value={item.href}
+                    onChange={(e) => {
+                      const next = [...(form.navItems ?? [])]
+                      next[index] = { ...item, href: e.target.value }
+                      set('navItems', next)
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Separator />
         </div>
 
         <SheetFooter>

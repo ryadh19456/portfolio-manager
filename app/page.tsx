@@ -27,7 +27,7 @@ export default async function Page() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <SiteHeader name={settings.siteTitle} />
+      <SiteHeader name={settings.siteTitle} settings={settings} />
       <HeroSection hero={hero} socials={socials} />
       {settings.showAbout ? <AboutSection about={about} /> : null}
       <WorkSection projects={projects} settings={settings} />
