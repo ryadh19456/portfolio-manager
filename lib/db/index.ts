@@ -14,6 +14,10 @@ function isSqliteDatabaseUrl(value: string | undefined) {
 }
 
 function resolveSqliteFilePath() {
+  if (process.env.VERCEL) {
+    return path.join("/tmp", "portfolio.db")
+  }
+
   const raw = (process.env.DATABASE_URL ?? "file:./portfolio.db").trim()
 
   if (raw.startsWith("file:")) {
@@ -224,6 +228,7 @@ function seedDefaultContent(sqlite: Database.Database) {
 function createDatabase() {
   if (sqliteEnabled) {
     const sqliteFilePath = resolveSqliteFilePath()
+    mkdirSync(path.dirname(sqliteFilePath), { recursive: true })
     void syncSqliteFromBlob(sqliteFilePath)
 
     const sqlite = new Database(sqliteFilePath)
