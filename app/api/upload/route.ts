@@ -46,7 +46,12 @@ export async function POST(request: NextRequest) {
         contentType: file.type || 'application/octet-stream',
       })
 
-      return NextResponse.json({ url: blob.url })
+      const viewUrl =
+        getBlobAccessMode() === 'public'
+          ? blob.url
+          : `/api/blob/view?pathname=${encodeURIComponent(blob.pathname)}`
+
+      return NextResponse.json({ url: viewUrl })
     } catch (blobError) {
       console.warn('[upload] Vercel Blob failed, falling back to local storage:', blobError)
     }
