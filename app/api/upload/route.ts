@@ -4,6 +4,10 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { isAdmin } from '@/lib/admin-auth'
 
+function getBlobAccessMode(): 'public' | 'private' {
+  return (process.env.BLOB_STORE_ACCESS ?? 'private').toLowerCase() === 'public' ? 'public' : 'private'
+}
+
 function getUploadDirectory() {
   return process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(process.cwd(), 'public', 'uploads')
 }
@@ -37,7 +41,8 @@ export async function POST(request: NextRequest) {
 
     try {
       const blob = await put(key, file, {
-        access: 'public',
+        access: getBlobAccessMode(),
+        token: process.env.BLOB_READ_WRITE_TOKEN,
         contentType: file.type || 'application/octet-stream',
       })
 

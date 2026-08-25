@@ -27,6 +27,10 @@ function resolveSqliteFilePath() {
   return raw.startsWith("./") || raw.startsWith("/") ? raw : `./${raw}`
 }
 
+function getBlobAccessMode(): 'public' | 'private' {
+  return (process.env.BLOB_STORE_ACCESS ?? 'private').toLowerCase() === 'public' ? 'public' : 'private'
+}
+
 function hasBlobStorageConfig() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN)
 }
@@ -67,7 +71,7 @@ export async function syncSqliteDatabaseToBlob() {
   try {
     const sqliteBytes = readFileSync(sqliteFilePath)
     await put("portfolio.db", new Blob([sqliteBytes]), {
-      access: "public",
+      access: getBlobAccessMode(),
       token: writeToken,
     })
   } catch {
