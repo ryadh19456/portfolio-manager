@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { asc, eq, sql } from "drizzle-orm"
-import { assertDatabaseConfigured, db, syncSqliteDatabaseToBlob } from "@/lib/db"
+import { assertDatabaseConfigured, db, ensureSqliteDatabaseSynced, syncSqliteDatabaseToBlob } from "@/lib/db"
 import { experience, projects, siteContent, socialLinks } from "@/lib/db/schema"
 import { requireAdmin } from "@/lib/admin-auth"
 import type { ContentKey, Project as ProjectType, SiteSettings, SocialLink } from "@/lib/content-types"
@@ -30,6 +30,7 @@ function slugify(input: string) {
 async function requireDatabase() {
   await requireAdmin()
   assertDatabaseConfigured()
+  await ensureSqliteDatabaseSynced()
 }
 
 /** Merges a partial patch into a singleton content row. */

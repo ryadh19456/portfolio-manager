@@ -313,3 +313,10 @@ let db: any
 db = createDatabase()
 
 export { db }
+
+export async function ensureSqliteDatabaseSynced() {
+  if (!sqliteEnabled || !hasBlobStorageConfig()) return
+
+  const sqliteFilePath = resolveSqliteFilePath()
+  await syncSqliteFromBlob(sqliteFilePath)
+}
