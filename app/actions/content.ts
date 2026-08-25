@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { asc, eq, sql } from "drizzle-orm"
-import { assertDatabaseConfigured, db } from "@/lib/db"
+import { assertDatabaseConfigured, db, syncSqliteDatabaseToBlob } from "@/lib/db"
 import { experience, projects, siteContent, socialLinks } from "@/lib/db/schema"
 import { requireAdmin } from "@/lib/admin-auth"
 import type { ContentKey, Project as ProjectType, SiteSettings, SocialLink } from "@/lib/content-types"
@@ -55,6 +55,7 @@ export async function saveContent(key: ContentKey, patch: Record<string, unknown
       },
     })
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -133,6 +134,7 @@ export async function saveProject(input: ProjectInput): Promise<ActionResult> {
       })
       .where(eq(projects.id, input.id))
 
+    await syncSqliteDatabaseToBlob()
     refresh()
     return { ok: true }
   }
@@ -163,6 +165,7 @@ export async function saveProject(input: ProjectInput): Promise<ActionResult> {
     })
     .returning()
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -178,6 +181,7 @@ export async function updateProject(id: number, input: ProjectInput): Promise<Ac
 export async function deleteProject(id: number): Promise<ActionResult> {
   await requireDatabase()
   await db.delete(projects).where(eq(projects.id, id))
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -200,6 +204,7 @@ export async function moveProject(id: number, direction: "up" | "down"): Promise
     db.update(projects).set({ sortOrder: current.sortOrder, updatedAt: new Date() }).where(eq(projects.id, other.id)),
   ])
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -211,6 +216,7 @@ export async function reorderProjects(orderedIds: number[]): Promise<ActionResul
     orderedIds.map((id, index) => db.update(projects).set({ sortOrder: index, updatedAt: new Date() }).where(eq(projects.id, id))),
   )
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -256,6 +262,7 @@ export async function saveExperience(input: ExperienceInput): Promise<ActionResu
     })
   }
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -271,6 +278,7 @@ export async function updateExperience(id: number, input: ExperienceInput): Prom
 export async function deleteExperience(id: number): Promise<ActionResult> {
   await requireDatabase()
   await db.delete(experience).where(eq(experience.id, id))
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -282,6 +290,7 @@ export async function reorderExperience(orderedIds: number[]): Promise<ActionRes
     orderedIds.map((id, index) => db.update(experience).set({ sortOrder: index }).where(eq(experience.id, id))),
   )
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -304,6 +313,7 @@ export async function saveSocials(rows: SocialInput[]): Promise<ActionResult> {
     })),
   )
 
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -318,6 +328,7 @@ export async function createSocialLink(input: SocialInput): Promise<ActionResult
     sortOrder: (maxRow[0]?.max ?? -1) + 1,
     createdAt: new Date(),
   })
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -332,6 +343,7 @@ export async function updateSocialLink(id: number, input: SocialInput): Promise<
       icon: input.icon ?? "link",
     })
     .where(eq(socialLinks.id, id))
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }
@@ -339,6 +351,7 @@ export async function updateSocialLink(id: number, input: SocialInput): Promise<
 export async function deleteSocialLink(id: number): Promise<ActionResult> {
   await requireDatabase()
   await db.delete(socialLinks).where(eq(socialLinks.id, id))
+  await syncSqliteDatabaseToBlob()
   refresh()
   return { ok: true }
 }

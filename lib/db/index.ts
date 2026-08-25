@@ -1,6 +1,9 @@
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import path from "node:path"
+import { put } from "@vercel/blob"
 import { Pool } from "pg"
 import { DEFAULT_ABOUT, DEFAULT_CONTACT, DEFAULT_HERO, DEFAULT_SETTINGS } from "@/lib/content-types"
 import * as schema from "./schema"
@@ -18,6 +21,48 @@ function resolveSqliteFilePath() {
   }
 
   return raw.startsWith("./") || raw.startsWith("/") ? raw : `./${raw}`
+}
+
+function hasBlobStorageConfig() {
+  return Boolean(process.env.BLOB_STORE_ID && process.env.BLOB_READ_WRITE_TOKEN)
+}
+
+function getBlobStoreBaseUrl() {
+  if (!hasBlobStorageConfig()) return null
+  return `https://${process.env.BLOB_STORE_ID!.trim()}.public.blob.vercel-storage.com`
+}
+
+async function syncSqliteFromBlob(sqlitePath: string) {
+  if (!hasBlobStorageConfig()) return
+
+  const blobUrl = getBlobStoreBaseUrl()
+  if (!blobUrl) return
+
+  try {
+    const response = await fetch(`${blobUrl}/portfolio.db?token=${encodeURIComponent(process.env.BLOB_READ_WRITE_TOKEN!.trim())}`)
+    if (!response.ok) return
+
+    const buffer = Buffer.from(await response.arrayBuffer())
+    mkdirSync(path.dirname(sqlitePath), { recursive: true })
+    writeFileSync(sqlitePath, buffer)
+  } catch {
+    // Blob-backed data is optional; if there's nothing there yet, keep using the local SQLite file.
+  }
+}
+
+export async function syncSqliteDatabaseToBlob() {
+  if (!isSqliteDatabaseUrl(process.env.DATABASE_URL) || !hasBlobStorageConfig()) return
+
+  const sqliteFilePath = resolveSqliteFilePath()
+  try {
+    const sqliteBytes = readFileSync(sqliteFilePath)
+    await put("portfolio.db", new Blob([sqliteBytes]), {
+      access: "public",
+      token: process.env.BLOB_READ_WRITE_TOKEN!,
+    })
+  } catch {
+    // Ignore blob sync failures so database writes still succeed locally.
+  }
 }
 
 export function hasDatabaseConfig() {
@@ -176,64 +221,66 @@ function seedDefaultContent(sqlite: Database.Database) {
   }
 }
 
-let db: any
+function createDatabase() {
+  if (sqliteEnabled) {
+    const sqliteFilePath = resolveSqliteFilePath()
+    void syncSqliteFromBlob(sqliteFilePath)
 
-if (sqliteEnabled) {
-  const sqliteFilePath = resolveSqliteFilePath()
-  const sqlite = new Database(sqliteFilePath)
-  sqlite.pragma("journal_mode = WAL")
-  sqlite.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      slug TEXT NOT NULL UNIQUE,
-      title TEXT NOT NULL,
-      tagline TEXT NOT NULL DEFAULT '',
-      description TEXT NOT NULL DEFAULT '',
-      content TEXT NOT NULL DEFAULT '',
-      tech TEXT NOT NULL DEFAULT '[]',
-      image_url TEXT,
-      live_url TEXT,
-      repo_url TEXT,
-      year TEXT NOT NULL DEFAULT '',
-      role TEXT NOT NULL DEFAULT '',
-      featured INTEGER NOT NULL DEFAULT 0,
-      published INTEGER NOT NULL DEFAULT 1,
-      sort_order INTEGER NOT NULL DEFAULT 0,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
-    );
+    const sqlite = new Database(sqliteFilePath)
+    sqlite.pragma("journal_mode = WAL")
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        slug TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        tagline TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL DEFAULT '',
+        tech TEXT NOT NULL DEFAULT '[]',
+        image_url TEXT,
+        live_url TEXT,
+        repo_url TEXT,
+        year TEXT NOT NULL DEFAULT '',
+        role TEXT NOT NULL DEFAULT '',
+        featured INTEGER NOT NULL DEFAULT 0,
+        published INTEGER NOT NULL DEFAULT 1,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
 
-    CREATE TABLE IF NOT EXISTS experience (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      role TEXT NOT NULL,
-      company TEXT NOT NULL DEFAULT '',
-      location TEXT NOT NULL DEFAULT '',
-      period TEXT NOT NULL DEFAULT '',
-      description TEXT NOT NULL DEFAULT '',
-      url TEXT,
-      sort_order INTEGER NOT NULL DEFAULT 0,
-      created_at INTEGER NOT NULL
-    );
+      CREATE TABLE IF NOT EXISTS experience (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role TEXT NOT NULL,
+        company TEXT NOT NULL DEFAULT '',
+        location TEXT NOT NULL DEFAULT '',
+        period TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        url TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
 
-    CREATE TABLE IF NOT EXISTS social_links (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      label TEXT NOT NULL,
-      url TEXT NOT NULL DEFAULT '',
-      icon TEXT NOT NULL DEFAULT 'link',
-      sort_order INTEGER NOT NULL DEFAULT 0,
-      created_at INTEGER NOT NULL
-    );
+      CREATE TABLE IF NOT EXISTS social_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        label TEXT NOT NULL,
+        url TEXT NOT NULL DEFAULT '',
+        icon TEXT NOT NULL DEFAULT 'link',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
 
-    CREATE TABLE IF NOT EXISTS site_content (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL DEFAULT '{}',
-      updated_at INTEGER NOT NULL
-    );
-  `)
+      CREATE TABLE IF NOT EXISTS site_content (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL DEFAULT '{}',
+        updated_at INTEGER NOT NULL
+      );
+    `)
 
-  seedDefaultContent(sqlite)
-  db = drizzle(sqlite, { schema })
-} else {
+    seedDefaultContent(sqlite)
+    return drizzle(sqlite, { schema })
+  }
+
   const pool =
     globalForDb.pool ??
     new Pool({
@@ -243,7 +290,11 @@ if (sqliteEnabled) {
 
   if (process.env.NODE_ENV !== "production") globalForDb.pool = pool
 
-  db = drizzlePg(pool, { schema })
+  return drizzlePg(pool, { schema })
 }
+
+let db: any
+
+db = createDatabase()
 
 export { db }
