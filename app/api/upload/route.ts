@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       try {
         const blob = await put(`uploads/${key}`, fileBuffer, {
           access: 'public',
+          token: process.env.BLOB_READ_WRITE_TOKEN,
           contentType: file.type || 'application/octet-stream',
         })
 

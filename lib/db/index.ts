@@ -28,12 +28,17 @@ function resolveSqliteFilePath() {
 }
 
 function hasBlobStorageConfig() {
-  return Boolean(process.env.BLOB_STORE_ID && process.env.BLOB_READ_WRITE_TOKEN)
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN)
 }
 
 function getBlobStoreBaseUrl() {
-  if (!hasBlobStorageConfig()) return null
-  return `https://${process.env.BLOB_STORE_ID!.trim()}.public.blob.vercel-storage.com`
+  const configuredUrl = process.env.BLOB_URL?.trim()
+  if (configuredUrl) return configuredUrl.replace(/\/$/, "")
+
+  const storeId = process.env.BLOB_STORE_ID?.trim()
+  if (storeId) return `https://${storeId}.public.blob.vercel-storage.com`
+
+  return null
 }
 
 async function syncSqliteFromBlob(sqlitePath: string) {
@@ -55,14 +60,15 @@ async function syncSqliteFromBlob(sqlitePath: string) {
 }
 
 export async function syncSqliteDatabaseToBlob() {
-  if (!isSqliteDatabaseUrl(process.env.DATABASE_URL) || !hasBlobStorageConfig()) return
+  const writeToken = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  if (!isSqliteDatabaseUrl(process.env.DATABASE_URL) || !writeToken) return
 
   const sqliteFilePath = resolveSqliteFilePath()
   try {
     const sqliteBytes = readFileSync(sqliteFilePath)
     await put("portfolio.db", new Blob([sqliteBytes]), {
       access: "public",
-      token: process.env.BLOB_READ_WRITE_TOKEN!,
+      token: writeToken,
     })
   } catch {
     // Ignore blob sync failures so database writes still succeed locally.
