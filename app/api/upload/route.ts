@@ -33,30 +33,27 @@ export async function POST(request: NextRequest) {
       originalName.includes('.')
         ? originalName.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'png'
         : 'png'
-    const key = `projects-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`
-    const fileBuffer = Buffer.from(await file.arrayBuffer())
+    const key = `uploads/projects-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const blob = await put(`uploads/${key}`, fileBuffer, {
-          access: 'public',
-          token: process.env.BLOB_READ_WRITE_TOKEN,
-          contentType: file.type || 'application/octet-stream',
-        })
+    try {
+      const blob = await put(key, file, {
+        access: 'public',
+        contentType: file.type || 'application/octet-stream',
+      })
 
-        return NextResponse.json({ url: blob.url })
-      } catch (blobError) {
-        console.warn('[upload] Vercel Blob failed, falling back to local storage:', blobError)
-      }
+      return NextResponse.json({ url: blob.url })
+    } catch (blobError) {
+      console.warn('[upload] Vercel Blob failed, falling back to local storage:', blobError)
     }
 
+    const fileBuffer = Buffer.from(await file.arrayBuffer())
     const uploadDir = getUploadDirectory()
     await mkdir(uploadDir, { recursive: true })
 
-    const filePath = path.join(uploadDir, key)
+    const filePath = path.join(uploadDir, path.basename(key))
     await writeFile(filePath, fileBuffer)
 
-    return NextResponse.json({ url: `/uploads/${key}` })
+    return NextResponse.json({ url: `/uploads/${path.basename(key)}` })
   } catch (error) {
     console.error('[upload] Save failed:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
