@@ -1,7 +1,12 @@
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { type NextRequest, NextResponse } from 'next/server'
+import { put } from '@vercel/blob'
 import { isAdmin } from '@/lib/admin-auth'
+
+function getUploadDirectory() {
+  return process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(process.cwd(), 'public', 'uploads')
+}
 
 export async function POST(request: NextRequest) {
   // Only an unlocked admin may upload.
@@ -29,11 +34,24 @@ export async function POST(request: NextRequest) {
         ? originalName.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'png'
         : 'png'
     const key = `projects-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+    const fileBuffer = Buffer.from(await file.arrayBuffer())
 
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        const blob = await put(`uploads/${key}`, fileBuffer, {
+          access: 'public',
+          contentType: file.type || 'application/octet-stream',
+        })
+
+        return NextResponse.json({ url: blob.url })
+      } catch (blobError) {
+        console.warn('[upload] Vercel Blob failed, falling back to local storage:', blobError)
+      }
+    }
+
+    const uploadDir = getUploadDirectory()
     await mkdir(uploadDir, { recursive: true })
 
-    const fileBuffer = Buffer.from(await file.arrayBuffer())
     const filePath = path.join(uploadDir, key)
     await writeFile(filePath, fileBuffer)
 
