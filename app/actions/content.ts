@@ -1,83 +1,39 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { asc, eq, sql } from "drizzle-orm"
-import { assertDatabaseConfigured, db, ensureSqliteDatabaseSynced, syncSqliteDatabaseToBlob } from "@/lib/db"
-import { experience, projects, siteContent, socialLinks } from "@/lib/db/schema"
 import { requireAdmin } from "@/lib/admin-auth"
-import type { ContentKey, Project as ProjectType, SiteSettings, SocialLink } from "@/lib/content-types"
+import { nextId, readData, writeData } from "@/lib/db/json/store"
+import type { ContentKey, Project, SiteSettings } from "@/lib/content-types"
 
-export type ActionResult =
-  | { ok: true }
-  | { ok: false; error: string }
+export type ActionResult = { ok: true } | { ok: false; error: string }
 
-function refresh() {
-  revalidatePath("/", "layout")
-}
+function refresh() { revalidatePath("/", "layout") }
+async function requireEditor() { await requireAdmin() }
 
 function slugify(input: string) {
-  return (
-    input
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .slice(0, 60) || `project-${Date.now()}`
-  )
+  return input.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60) || `project-${Date.now()}`
 }
 
-async function requireDatabase() {
-  await requireAdmin()
-  assertDatabaseConfigured()
-  await ensureSqliteDatabaseSynced()
+function uniqueSlug(projects: Project[], desired: string, ignoreId?: number) {
+  let candidate = desired
+  let suffix = 2
+  while (projects.some((project) => project.slug === candidate && project.id !== ignoreId)) candidate = `${desired}-${suffix++}`
+  return candidate
 }
 
-/** Merges a partial patch into a singleton content row. */
 export async function saveContent(key: ContentKey, patch: Record<string, unknown>): Promise<ActionResult> {
-  await requireDatabase()
-
-  const rows = await db.select().from(siteContent).where(eq(siteContent.key, key)).limit(1)
-  const currentValue = (rows[0]?.value as Record<string, unknown> | undefined) ?? {}
-  const nextValue = { ...currentValue, ...patch }
-
-  await db
-    .insert(siteContent)
-    .values({
-      key,
-      value: nextValue,
-      updatedAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: siteContent.key,
-      set: {
-        value: nextValue,
-        updatedAt: new Date(),
-      },
-    })
-
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  data.site_content[key] = { ...(data.site_content[key] ?? {}), ...patch }
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
-export async function saveHero(patch: Record<string, unknown>): Promise<ActionResult> {
-  return saveContent("hero", patch)
-}
-
-export async function saveAbout(patch: Record<string, unknown>): Promise<ActionResult> {
-  return saveContent("about", patch)
-}
-
-export async function saveContact(patch: Record<string, unknown>): Promise<ActionResult> {
-  return saveContent("contact", patch)
-}
-
-export async function saveSettings(patch: SiteSettings): Promise<ActionResult> {
-  return saveContent("settings", patch)
-}
-
-// ---------- Projects ----------
+export async function saveHero(patch: Record<string, unknown>) { return saveContent("hero", patch) }
+export async function saveAbout(patch: Record<string, unknown>) { return saveContent("about", patch) }
+export async function saveContact(patch: Record<string, unknown>) { return saveContent("contact", patch) }
+export async function saveSettings(patch: SiteSettings) { return saveContent("settings", patch) }
 
 export type ProjectInput = {
   id?: number
@@ -96,263 +52,159 @@ export type ProjectInput = {
   published?: boolean
 }
 
-async function uniqueSlug(desired: string, ignoreId?: number) {
-  let candidate = desired
-  let suffix = 2
-
-  while (true) {
-    const rows = await db.select({ id: projects.id }).from(projects).where(eq(projects.slug, candidate)).limit(1)
-    const clash = rows[0] && rows[0].id !== ignoreId
-    if (!clash) return candidate
-    candidate = `${desired}-${suffix++}`
-  }
-}
-
 export async function saveProject(input: ProjectInput): Promise<ActionResult> {
-  await requireDatabase()
+  await requireEditor()
+  const data = readData()
+  const title = input.title.trim() || "Untitled project"
+  const project = {
+    title,
+    slug: uniqueSlug(data.projects, slugify(input.slug?.trim() || title), input.id),
+    tagline: input.tagline ?? "",
+    description: input.description ?? "",
+    content: input.content ?? "",
+    tech: input.tech ?? [],
+    imageUrl: input.imageUrl ?? null,
+    liveUrl: input.liveUrl ?? null,
+    repoUrl: input.repoUrl ?? null,
+    year: input.year ?? "",
+    role: input.role ?? "",
+    featured: input.featured ?? false,
+    published: input.published ?? true,
+    updatedAt: new Date().toISOString(),
+  }
 
   if (input.id) {
-    const title = input.title.trim() || "Untitled project"
-    const slug = await uniqueSlug(slugify(input.slug?.trim() || title), input.id)
-
-    await db
-      .update(projects)
-      .set({
-        title,
-        slug,
-        tagline: input.tagline ?? "",
-        description: input.description ?? "",
-        content: input.content ?? "",
-        tech: input.tech ?? [],
-        imageUrl: input.imageUrl ?? null,
-        liveUrl: input.liveUrl ?? null,
-        repoUrl: input.repoUrl ?? null,
-        year: input.year ?? "",
-        role: input.role ?? "",
-        featured: input.featured ?? false,
-        published: input.published ?? true,
-        updatedAt: new Date(),
-      })
-      .where(eq(projects.id, input.id))
-
-    await syncSqliteDatabaseToBlob()
-    refresh()
-    return { ok: true }
+    const index = data.projects.findIndex((item) => item.id === input.id)
+    if (index === -1) return { ok: false, error: "Project not found" }
+    data.projects[index] = { ...data.projects[index], ...project }
+  } else {
+    data.projects.push({ ...project, id: nextId(data.projects), sortOrder: data.projects.length, createdAt: new Date().toISOString() } as Project)
   }
 
-  const title = input.title.trim() || "Untitled project"
-  const slug = await uniqueSlug(slugify(input.slug?.trim() || title))
-  const maxRow = await db.select({ max: sql<number>`coalesce(max(${projects.sortOrder}), -1)` }).from(projects)
-
-  const [row] = await db
-    .insert(projects)
-    .values({
-      title,
-      slug,
-      tagline: input.tagline ?? "",
-      description: input.description ?? "",
-      content: input.content ?? "",
-      tech: input.tech ?? [],
-      imageUrl: input.imageUrl ?? null,
-      liveUrl: input.liveUrl ?? null,
-      repoUrl: input.repoUrl ?? null,
-      year: input.year ?? "",
-      role: input.role ?? "",
-      featured: input.featured ?? false,
-      published: input.published ?? true,
-      sortOrder: (maxRow[0]?.max ?? -1) + 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .returning()
-
-  await syncSqliteDatabaseToBlob()
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
-export async function createProject(input: ProjectInput): Promise<ActionResult> {
-  return saveProject(input)
-}
-
-export async function updateProject(id: number, input: ProjectInput): Promise<ActionResult> {
-  return saveProject({ ...input, id })
-}
+export async function createProject(input: ProjectInput) { return saveProject(input) }
+export async function updateProject(id: number, input: ProjectInput) { return saveProject({ ...input, id }) }
 
 export async function deleteProject(id: number): Promise<ActionResult> {
-  await requireDatabase()
-  await db.delete(projects).where(eq(projects.id, id))
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  data.projects = data.projects.filter((project) => project.id !== id)
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function moveProject(id: number, direction: "up" | "down"): Promise<ActionResult> {
-  await requireDatabase()
-
-  const rows = await db.select().from(projects).orderBy(asc(projects.sortOrder), asc(projects.id))
-  const index = rows.findIndex((row: { id: number }) => row.id === id)
+  await requireEditor()
+  const data = readData()
+  data.projects.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+  const index = data.projects.findIndex((project) => project.id === id)
   if (index === -1) return { ok: false, error: "Project not found" }
-
   const swapIndex = direction === "up" ? index - 1 : index + 1
-  if (swapIndex < 0 || swapIndex >= rows.length) return { ok: true }
-
-  const current = rows[index]
-  const other = rows[swapIndex]
-
-  await Promise.all([
-    db.update(projects).set({ sortOrder: other.sortOrder, updatedAt: new Date() }).where(eq(projects.id, current.id)),
-    db.update(projects).set({ sortOrder: current.sortOrder, updatedAt: new Date() }).where(eq(projects.id, other.id)),
-  ])
-
-  await syncSqliteDatabaseToBlob()
+  if (swapIndex >= 0 && swapIndex < data.projects.length) {
+    const currentOrder = data.projects[index].sortOrder
+    data.projects[index].sortOrder = data.projects[swapIndex].sortOrder
+    data.projects[swapIndex].sortOrder = currentOrder
+  }
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function reorderProjects(orderedIds: number[]): Promise<ActionResult> {
-  await requireDatabase()
-
-  await Promise.all(
-    orderedIds.map((id, index) => db.update(projects).set({ sortOrder: index, updatedAt: new Date() }).where(eq(projects.id, id))),
-  )
-
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  orderedIds.forEach((id, index) => {
+    const project = data.projects.find((item) => item.id === id)
+    if (project) project.sortOrder = index
+  })
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
-// ---------- Experience ----------
-
-export type ExperienceInput = {
-  id?: number
-  role: string
-  company?: string
-  location?: string
-  period?: string
-  description?: string
-  url?: string | null
-}
+export type ExperienceInput = { id?: number; role: string; company?: string; location?: string; period?: string; description?: string; url?: string | null }
 
 export async function saveExperience(input: ExperienceInput): Promise<ActionResult> {
-  await requireDatabase()
-
+  await requireEditor()
+  const data = readData()
+  const entry = { role: input.role.trim() || "Untitled role", company: input.company ?? "", location: input.location ?? "", period: input.period ?? "", description: input.description ?? "", url: input.url ?? null }
   if (input.id) {
-    await db
-      .update(experience)
-      .set({
-        role: input.role.trim() || "Untitled role",
-        company: input.company ?? "",
-        location: input.location ?? "",
-        period: input.period ?? "",
-        description: input.description ?? "",
-        url: input.url ?? null,
-      })
-      .where(eq(experience.id, input.id))
+    const index = data.experience.findIndex((item) => item.id === input.id)
+    if (index === -1) return { ok: false, error: "Experience not found" }
+    data.experience[index] = { ...data.experience[index], ...entry }
   } else {
-    const maxRow = await db.select({ max: sql<number>`coalesce(max(${experience.sortOrder}), -1)` }).from(experience)
-    await db.insert(experience).values({
-      role: input.role.trim() || "Untitled role",
-      company: input.company ?? "",
-      location: input.location ?? "",
-      period: input.period ?? "",
-      description: input.description ?? "",
-      url: input.url ?? null,
-      sortOrder: (maxRow[0]?.max ?? -1) + 1,
-      createdAt: new Date(),
-    })
+    data.experience.push({ ...entry, id: nextId(data.experience), sortOrder: data.experience.length, createdAt: new Date().toISOString() })
   }
-
-  await syncSqliteDatabaseToBlob()
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
-export async function createExperience(input: ExperienceInput): Promise<ActionResult> {
-  return saveExperience(input)
-}
-
-export async function updateExperience(id: number, input: ExperienceInput): Promise<ActionResult> {
-  return saveExperience({ ...input, id })
-}
+export async function createExperience(input: ExperienceInput) { return saveExperience(input) }
+export async function updateExperience(id: number, input: ExperienceInput) { return saveExperience({ ...input, id }) }
 
 export async function deleteExperience(id: number): Promise<ActionResult> {
-  await requireDatabase()
-  await db.delete(experience).where(eq(experience.id, id))
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  data.experience = data.experience.filter((item) => item.id !== id)
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function reorderExperience(orderedIds: number[]): Promise<ActionResult> {
-  await requireDatabase()
-
-  await Promise.all(
-    orderedIds.map((id, index) => db.update(experience).set({ sortOrder: index }).where(eq(experience.id, id))),
-  )
-
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  orderedIds.forEach((id, index) => {
+    const entry = data.experience.find((item) => item.id === id)
+    if (entry) entry.sortOrder = index
+  })
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
-// ---------- Social links ----------
-
 export type SocialInput = { label: string; url?: string; icon?: string }
 
 export async function saveSocials(rows: SocialInput[]): Promise<ActionResult> {
-  await requireDatabase()
-
-  await db.delete(socialLinks)
-  await db.insert(socialLinks).values(
-    rows.map((row, index) => ({
-      label: row.label.trim() || "Link",
-      url: row.url ?? "",
-      icon: row.icon ?? "link",
-      sortOrder: index,
-      createdAt: new Date(),
-    })),
-  )
-
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  data.social_links = rows.map((row, index) => ({ label: row.label.trim() || "Link", url: row.url ?? "", icon: row.icon ?? "link", id: index + 1, sortOrder: index, createdAt: new Date().toISOString() }))
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function createSocialLink(input: SocialInput): Promise<ActionResult> {
-  await requireDatabase()
-  const maxRow = await db.select({ max: sql<number>`coalesce(max(${socialLinks.sortOrder}), -1)` }).from(socialLinks)
-  await db.insert(socialLinks).values({
-    label: input.label.trim() || "Link",
-    url: input.url ?? "",
-    icon: input.icon ?? "link",
-    sortOrder: (maxRow[0]?.max ?? -1) + 1,
-    createdAt: new Date(),
-  })
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  data.social_links.push({ label: input.label.trim() || "Link", url: input.url ?? "", icon: input.icon ?? "link", id: nextId(data.social_links), sortOrder: data.social_links.length, createdAt: new Date().toISOString() })
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function updateSocialLink(id: number, input: SocialInput): Promise<ActionResult> {
-  await requireDatabase()
-  await db
-    .update(socialLinks)
-    .set({
-      label: input.label.trim() || "Link",
-      url: input.url ?? "",
-      icon: input.icon ?? "link",
-    })
-    .where(eq(socialLinks.id, id))
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  const link = data.social_links.find((item) => item.id === id)
+  if (!link) return { ok: false, error: "Social link not found" }
+  Object.assign(link, { label: input.label.trim() || "Link", url: input.url ?? "", icon: input.icon ?? "link" })
+  writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function deleteSocialLink(id: number): Promise<ActionResult> {
-  await requireDatabase()
-  await db.delete(socialLinks).where(eq(socialLinks.id, id))
-  await syncSqliteDatabaseToBlob()
+  await requireEditor()
+  const data = readData()
+  data.social_links = data.social_links.filter((item) => item.id !== id)
+  writeData(data)
   refresh()
   return { ok: true }
 }

@@ -1,0 +1,7 @@
+{
+  "site_content": {
+    "key": "string",
+    "value": "object",
+    "updated_at": "integer"
+  }
+}

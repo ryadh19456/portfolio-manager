@@ -28,6 +28,7 @@ export function useAdmin() {
   return ctx
 }
 
+/* Controls global editMode. When true, Editable and ProjectEditor appear. */
 export function AdminProvider({
   initialIsAdmin,
   children,

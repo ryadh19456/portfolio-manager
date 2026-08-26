@@ -1,3 +1,5 @@
+/* All things in site not editable. Only projects section remains. */
+
 'use client'
 
 import { useState, useTransition } from 'react'

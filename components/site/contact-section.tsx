@@ -3,8 +3,6 @@
 import { useState, useTransition } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import type { ContactContent, SiteSettings, SocialLink } from '@/lib/content-types'
-import { Editable } from '@/components/admin/editable'
-import { ContactEditor } from '@/components/admin/editors/contact-editor'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -27,7 +25,6 @@ export function ContactSection({
   socials: SocialLink[]
   settings: SiteSettings
 }) {
-  const [open, setOpen] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [pending, startTransition] = useTransition()
   const year = new Date().getFullYear()
@@ -61,8 +58,7 @@ export function ContactSection({
       className="scroll-mt-20 border-t border-border bg-secondary/30"
     >
       <div className="mx-auto max-w-5xl px-6 py-20">
-        <Editable label="contact" onEdit={() => setOpen(true)}>
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-start gap-6">
               <h2 className="max-w-2xl text-balance font-serif text-4xl leading-tight tracking-tight sm:text-5xl">
                 {contact.heading}
@@ -143,8 +139,7 @@ export function ContactSection({
                 </Button>
               </div>
             </form>
-          </div>
-        </Editable>
+        </div>
 
         <div className="mt-16 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
           <p>

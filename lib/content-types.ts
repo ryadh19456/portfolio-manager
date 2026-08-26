@@ -1,3 +1,5 @@
+/* Projects only. Type definitions for Project and SiteSettings. */
+
 export type Hero = {
   name: string
   role: string
@@ -93,12 +95,12 @@ export type SocialLink = {
 }
 
 export const DEFAULT_HERO: Hero = {
-  name: "Your Name",
-  role: "Software Engineer",
-  headline: "I design and build things for the web.",
-  intro: "Add a short introduction about yourself here.",
-  location: "Earth",
-  availability: "Available for work",
+  name: "Ryad Hejazy",
+  role: "Programmer & Information Technology Student",
+  headline: "I build reliable, user-focused software.",
+  intro: "I am an Information Technology student and programmer interested in building reliable, user-focused applications across mobile, web, and backend development.",
+  location: "Syria, Damascus",
+  availability: "Focused on software development",
   avatarUrl: null,
   ctaLabel: "View my work",
   ctaHref: "#work",
@@ -108,16 +110,16 @@ export const DEFAULT_HERO: Hero = {
 
 export const DEFAULT_ABOUT: About = {
   heading: "About",
-  body: "Tell your story here.",
-  skillsHeading: "Skills",
-  skills: [],
+  body: "I am an Information Technology student and programmer interested in building reliable, user-focused applications. My main areas of interest include Flutter, React, Node.js, databases, and software architecture.\n\nFocus: Software Development, Mobile Development, Web Development, and Backend Development.\n\nStrengths: Problem solving, debugging, full-stack understanding, continuous learning, adaptability, clean and maintainable code, and software architecture.\n\nCurrently improving: Advanced Flutter development, backend development, API and database design, software architecture, TypeScript and React, and professional communication.\n\nCareer goal: To grow into a professional software developer and contribute to reliable, maintainable, and user-focused software.\n\nEducation: Information Technology Student studying programming, software development, databases, networking, and modern information systems.\n\nLanguages: Arabic (native) and English (improving).",
+  skillsHeading: "Technical Skills",
+  skills: ["Dart", "TypeScript", "JavaScript", "C#", "C++", "Python", "SQL", "Flutter", "GetX", "REST APIs", "Authentication", "Local Storage", "React", "Tailwind CSS", "Vite", "Node.js", "MySQL", "MongoDB", "PostgreSQL", "SQLite", "Supabase", "Git", "GitHub", "VS Code", "Postman", "Flutter CLI", "npm", "Gradle"],
   photoUrl: null,
 }
 
 export const DEFAULT_CONTACT: Contact = {
   heading: "Let us work together",
   body: "Have a project in mind? Get in touch.",
-  email: "hello@example.com",
+  email: "hejazyryad00@gmail.com",
   buttonLabel: "Send me an email",
   footerNote: "",
 }

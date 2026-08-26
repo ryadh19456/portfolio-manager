@@ -1,0 +1,66 @@
+{
+  "hero": {
+    "name": "Ryad Hejazy",
+    "role": "Programmer & Information Technology Student",
+    "headline": "I build reliable, user-focused software.",
+    "intro": "I am an Information Technology student and programmer interested in building reliable, user-focused applications across mobile, web, and backend development.",
+    "location": "Syria, Damascus",
+    "availability": "Focused on software development",
+    "avatarUrl": "/my.jpg",
+    "ctaLabel": "View my work",
+    "ctaHref": "#work",
+    "secondaryCtaLabel": "Get in touch",
+    "secondaryCtaHref": "#contact"
+  },
+  "about": {
+    "heading": "About",
+    "body": "I am an Information Technology student and programmer interested in building reliable, user-focused applications. My main areas of interest include Flutter, React, Node.js, databases, and software architecture.\n\nFocus: Software Development, Mobile Development, Web Development, and Backend Development.\n\nStrengths: Problem solving, debugging, full-stack understanding, continuous learning, adaptability, clean and maintainable code, and software architecture.\n\nCurrently improving: Advanced Flutter development, backend development, API and database design, software architecture, TypeScript and React, and professional communication.\n\nCareer goal: To grow into a professional software developer and contribute to reliable, maintainable, and user-focused software.\n\nEducation: Information Technology Student studying programming, software development, databases, networking, and modern information systems.\n\nLanguages: Arabic (native) and English (improving).",
+    "skillsHeading": "Technical Skills",
+    "skills": ["Dart", "TypeScript", "JavaScript", "C#", "C++", "Python", "SQL", "Flutter", "GetX", "REST APIs", "Authentication", "Local Storage", "React", "Tailwind CSS", "Vite", "Node.js", "MySQL", "MongoDB", "PostgreSQL", "SQLite", "Supabase", "Git", "GitHub", "VS Code", "Postman", "Flutter CLI", "npm", "Gradle"],
+    "photoUrl": null
+  },
+  "contact": {
+    "heading": "Let’s build something meaningful.",
+    "body": "I partner with founders, product teams, and agencies to design and build digital experiences that are thoughtful, useful, and measurable.",
+    "email": "hejazyryad00@gmail.com",
+    "buttonLabel": "email me",
+    "footerNote": "Made with care."
+  },
+  "settings": {
+    "siteTitle": "Ryad Hejazy",
+    "siteDescription": "Programmer and Information Technology student building reliable, user-focused software.",
+    "workHeading": "Selected Projects",
+    "workSubheading": "Recent work across software development, mobile apps, and web applications.",
+    "experienceHeading": ".",
+    "showExperience": false,
+    "showAbout": true,
+    "showContact": true,
+    "footerText": "© 2026 Ryad Hejazy"
+  },
+  "projects": [
+    {
+      "id": 1,
+      "slug": "sample-project",
+      "title": "Sample Project",
+      "tagline": "A starter portfolio project",
+      "description": "This is a sample project created during local setup.",
+      "content": "## Example project\n\nReplace this with your real project details.",
+      "tech": ["Next.js", "TypeScript", "SQLite"],
+      "imageUrl": null,
+      "liveUrl": "https://example.com",
+      "repoUrl": "https://github.com/example/project",
+      "year": "2026",
+      "role": "Full Stack Developer",
+      "featured": true,
+      "published": true,
+      "sortOrder": 0,
+      "createdAt": "2026-08-23T00:26:19.947Z",
+      "updatedAt": "2026-08-23T00:26:19.947Z"
+    }
+  ],
+  "social_links": [
+    { "id": 1, "label": "GitHub", "url": "https://github.com", "icon": "github", "sortOrder": 0, "createdAt": "2026-08-23T00:38:40.912Z" },
+    { "id": 2, "label": "LinkedIn", "url": "https://linkedin.com", "icon": "linkedin", "sortOrder": 1, "createdAt": "2026-08-23T00:38:40.912Z" },
+    { "id": 3, "label": "Email", "url": "mailto:hejazyryad00@gmail.com", "icon": "mail", "sortOrder": 2, "createdAt": "2026-08-23T00:38:40.912Z" }
+  ]
+}
