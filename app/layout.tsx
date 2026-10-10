@@ -65,12 +65,8 @@ export default async function RootLayout({
         <Suspense>
           <Toaster position="bottom-center" />
         </Suspense>
-        {process.env.NODE_ENV === 'production' && (
-          <>
-            <Analytics />
-            <SpeedInsights />
-          </>
-        )}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
