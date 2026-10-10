@@ -4,7 +4,7 @@ import { DEFAULT_ABOUT, DEFAULT_CONTACT, DEFAULT_HERO, DEFAULT_SETTINGS, type Ab
 import { readData } from "@/lib/db/json/store"
 
 async function readContent<T>(key: string, fallback: T): Promise<T> {
-  const value = readData().site_content[key]
+  const value = (await readData()).site_content[key]
   return value ? { ...fallback, ...value } : fallback
 }
 
@@ -14,7 +14,7 @@ export function getContact() { return readContent<Contact>("contact", DEFAULT_CO
 export function getSettings() { return readContent<Settings>("settings", DEFAULT_SETTINGS) }
 
 export async function getAllProjects() {
-  return readData().projects.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+  return (await readData()).projects.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
 }
 
 export async function getPublishedProjects() {
@@ -22,13 +22,13 @@ export async function getPublishedProjects() {
 }
 
 export async function getProjectBySlug(slug: string) {
-  return readData().projects.find((project) => project.slug === slug) ?? null
+  return (await readData()).projects.find((project) => project.slug === slug) ?? null
 }
 
 export async function getExperience() {
-  return readData().experience.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+  return (await readData()).experience.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
 }
 
 export async function getSocialLinks() {
-  return readData().social_links.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+  return (await readData()).social_links.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
 }
