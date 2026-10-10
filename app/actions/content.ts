@@ -23,9 +23,9 @@ function uniqueSlug(projects: Project[], desired: string, ignoreId?: number) {
 
 export async function saveContent(key: ContentKey, patch: Record<string, unknown>): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.site_content[key] = { ...(data.site_content[key] ?? {}), ...patch }
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
@@ -54,7 +54,7 @@ export type ProjectInput = {
 
 export async function saveProject(input: ProjectInput): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   const title = input.title.trim() || "Untitled project"
   const project = {
     title,
@@ -81,7 +81,7 @@ export async function saveProject(input: ProjectInput): Promise<ActionResult> {
     data.projects.push({ ...project, id: nextId(data.projects), sortOrder: data.projects.length, createdAt: new Date().toISOString() } as Project)
   }
 
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
@@ -91,16 +91,16 @@ export async function updateProject(id: number, input: ProjectInput) { return sa
 
 export async function deleteProject(id: number): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.projects = data.projects.filter((project) => project.id !== id)
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function moveProject(id: number, direction: "up" | "down"): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.projects.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
   const index = data.projects.findIndex((project) => project.id === id)
   if (index === -1) return { ok: false, error: "Project not found" }
@@ -110,19 +110,19 @@ export async function moveProject(id: number, direction: "up" | "down"): Promise
     data.projects[index].sortOrder = data.projects[swapIndex].sortOrder
     data.projects[swapIndex].sortOrder = currentOrder
   }
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function reorderProjects(orderedIds: number[]): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   orderedIds.forEach((id, index) => {
     const project = data.projects.find((item) => item.id === id)
     if (project) project.sortOrder = index
   })
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
@@ -131,7 +131,7 @@ export type ExperienceInput = { id?: number; role: string; company?: string; loc
 
 export async function saveExperience(input: ExperienceInput): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   const entry = { role: input.role.trim() || "Untitled role", company: input.company ?? "", location: input.location ?? "", period: input.period ?? "", description: input.description ?? "", url: input.url ?? null }
   if (input.id) {
     const index = data.experience.findIndex((item) => item.id === input.id)
@@ -140,7 +140,7 @@ export async function saveExperience(input: ExperienceInput): Promise<ActionResu
   } else {
     data.experience.push({ ...entry, id: nextId(data.experience), sortOrder: data.experience.length, createdAt: new Date().toISOString() })
   }
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
@@ -150,21 +150,21 @@ export async function updateExperience(id: number, input: ExperienceInput) { ret
 
 export async function deleteExperience(id: number): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.experience = data.experience.filter((item) => item.id !== id)
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function reorderExperience(orderedIds: number[]): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   orderedIds.forEach((id, index) => {
     const entry = data.experience.find((item) => item.id === id)
     if (entry) entry.sortOrder = index
   })
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
@@ -173,38 +173,38 @@ export type SocialInput = { label: string; url?: string; icon?: string }
 
 export async function saveSocials(rows: SocialInput[]): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.social_links = rows.map((row, index) => ({ label: row.label.trim() || "Link", url: row.url ?? "", icon: row.icon ?? "link", id: index + 1, sortOrder: index, createdAt: new Date().toISOString() }))
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function createSocialLink(input: SocialInput): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.social_links.push({ label: input.label.trim() || "Link", url: input.url ?? "", icon: input.icon ?? "link", id: nextId(data.social_links), sortOrder: data.social_links.length, createdAt: new Date().toISOString() })
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function updateSocialLink(id: number, input: SocialInput): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   const link = data.social_links.find((item) => item.id === id)
   if (!link) return { ok: false, error: "Social link not found" }
   Object.assign(link, { label: input.label.trim() || "Link", url: input.url ?? "", icon: input.icon ?? "link" })
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
 
 export async function deleteSocialLink(id: number): Promise<ActionResult> {
   await requireEditor()
-  const data = readData()
+  const data = await readData()
   data.social_links = data.social_links.filter((item) => item.id !== id)
-  writeData(data)
+  await writeData(data)
   refresh()
   return { ok: true }
 }
