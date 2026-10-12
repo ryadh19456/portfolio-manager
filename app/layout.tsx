@@ -5,6 +5,7 @@ import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import { Suspense } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { getSettings } from '@/lib/queries'
+import { getSiteUrl } from '@/lib/site-url'
 import { isAdmin } from '@/lib/admin-auth'
 import { AdminProvider } from '@/components/admin/admin-provider'
 import './globals.css'
@@ -20,13 +21,18 @@ const instrumentSerif = Instrument_Serif({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings()
   return {
+    metadataBase: getSiteUrl(),
     title: settings.siteTitle,
     description: settings.siteDescription,
     generator: 'v0.app',
+    alternates: {
+      canonical: '/',
+    },
     openGraph: {
       title: settings.siteTitle,
       description: settings.siteDescription,
       type: 'website',
+      url: '/',
     },
   }
 }
