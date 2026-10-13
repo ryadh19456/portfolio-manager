@@ -37,7 +37,7 @@ export async function readData(): Promise<JsonData> {
       throw new Error("BLOB_READ_WRITE_TOKEN is required to persist content on Vercel")
     }
 
-    const blob = await get(blobPathname, { access: "private" })
+    const blob = await get(blobPathname, { access: "private", useCache: false })
     if (blob) return parseData(await new Response(blob.stream).text())
   }
 

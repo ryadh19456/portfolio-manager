@@ -119,27 +119,31 @@ export function ProjectEditor({
       .map((t) => t.trim())
       .filter(Boolean)
     startTransition(async () => {
-      const res = await saveProject({
-        id: project?.id,
-        title: form.title,
-        slug: form.slug || slugify(form.title),
-        tagline: form.tagline,
-        description: form.description,
-        content: form.content,
-        tech,
-        imageUrl: form.imageUrl,
-        liveUrl: form.liveUrl || null,
-        repoUrl: form.repoUrl || null,
-        year: form.year,
-        role: form.role,
-        featured: form.featured,
-        published: form.published,
-      })
-      if (res.ok) {
-        toast.success(project ? 'Project updated' : 'Project added')
-        onOpenChange(false)
-      } else {
-        toast.error(res.error ?? 'Could not save')
+      try {
+        const res = await saveProject({
+          id: project?.id,
+          title: form.title,
+          slug: form.slug || slugify(form.title),
+          tagline: form.tagline,
+          description: form.description,
+          content: form.content,
+          tech,
+          imageUrl: form.imageUrl,
+          liveUrl: form.liveUrl || null,
+          repoUrl: form.repoUrl || null,
+          year: form.year,
+          role: form.role,
+          featured: form.featured,
+          published: form.published,
+        })
+        if (res.ok) {
+          toast.success(project ? 'Project updated' : 'Project added')
+          onOpenChange(false)
+        } else {
+          toast.error(res.error ?? 'Could not save')
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Could not save project')
       }
     })
   }
