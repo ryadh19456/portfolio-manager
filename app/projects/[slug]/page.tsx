@@ -72,25 +72,7 @@ export default async function ProjectPage({
                 {project.role ? <span>· {project.role}</span> : null}
                 {project.featured ? <Badge>Featured</Badge> : null}
               </div>
-              <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
-                {project.title}
-              </h1>
               <ProjectDetailEdit project={project} />
-              {project.tagline ? (
-                <p className="mt-4 text-xl leading-relaxed text-muted-foreground">
-                  {project.tagline}
-                </p>
-              ) : null}
-              {project.description ? (
-                <p className="mt-8 text-lg leading-relaxed text-muted-foreground">
-                  {project.description}
-                </p>
-              ) : null}
-              {project.content ? (
-                <div className="mt-8 whitespace-pre-wrap border-t border-border pt-8 leading-relaxed text-muted-foreground">
-                  {project.content}
-                </div>
-              ) : null}
             </div>
 
             <aside className="flex flex-col gap-6 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-6">
