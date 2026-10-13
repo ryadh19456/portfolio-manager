@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowUpRight, Code2, ExternalLink } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
+import { ProjectDetailEdit } from '@/components/admin/project-detail-edit'
 import { getProjectBySlug, getSettings } from '@/lib/queries'
 
 export async function generateMetadata({
@@ -74,6 +75,7 @@ export default async function ProjectPage({
               <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
                 {project.title}
               </h1>
+              <ProjectDetailEdit project={project} />
               {project.tagline ? (
                 <p className="mt-4 text-xl leading-relaxed text-muted-foreground">
                   {project.tagline}

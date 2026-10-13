@@ -139,6 +139,7 @@ export function ProjectEditor({
         if (res.ok) {
           toast.success(project ? 'Project updated' : 'Project added')
           onOpenChange(false)
+          router.refresh()
         } else {
           toast.error(res.error ?? 'Could not save')
         }
