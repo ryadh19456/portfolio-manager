@@ -127,6 +127,13 @@
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
   }
+  [lang='ar'] body {
+    font-family: var(--font-noto-arabic), sans-serif;
+  }
+  [lang='ar'] .font-serif {
+    font-family: var(--font-noto-arabic), sans-serif;
+    font-weight: 700;
+  }
   ::selection {
     background: var(--accent);
     color: var(--accent-foreground);

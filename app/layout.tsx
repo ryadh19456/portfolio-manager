@@ -1,13 +1,14 @@
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
+import { Geist, Geist_Mono, Instrument_Serif, Noto_Sans_Arabic } from 'next/font/google'
 import { Suspense } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { getSettings } from '@/lib/queries'
 import { getSiteUrl } from '@/lib/site-url'
 import { isAdmin } from '@/lib/admin-auth'
 import { AdminProvider } from '@/components/admin/admin-provider'
+import { LanguageProvider } from '@/components/site/language-provider'
 import './globals.css'
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
@@ -17,6 +18,7 @@ const instrumentSerif = Instrument_Serif({
   weight: '400',
   variable: '--font-instrument-serif',
 })
+const notoArabic = Noto_Sans_Arabic({ subsets: ['arabic', 'latin'], variable: '--font-noto-arabic' })
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings()
@@ -55,7 +57,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`bg-background ${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
+      className={`bg-background ${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${notoArabic.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -67,7 +69,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <AdminProvider initialIsAdmin={admin}>{children}</AdminProvider>
+        <LanguageProvider>
+          <AdminProvider initialIsAdmin={admin}>{children}</AdminProvider>
+        </LanguageProvider>
         <Suspense>
           <Toaster position="bottom-center" />
         </Suspense>

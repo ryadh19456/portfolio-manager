@@ -1,7 +1,12 @@
+'use client'
+
 import type { AboutContent } from '@/lib/content-types'
 import { Badge } from '@/components/ui/badge'
+import { useLanguage } from './language-provider'
 
 export function AboutSection({ about }: { about: AboutContent }) {
+  const { localize } = useLanguage()
+
   return (
     <section
       id="about"
@@ -13,29 +18,29 @@ export function AboutSection({ about }: { about: AboutContent }) {
             <div className="overflow-hidden rounded-2xl border border-border bg-secondary/40">
               <img
                 src={about.photoUrl}
-                alt={about.heading || 'Profile'}
+                alt={localize(about.heading) || 'Profile'}
                 className="aspect-[4/5] w-full object-cover"
               />
             </div>
           ) : null}
           <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
-            {about.heading}
+            {localize(about.heading)}
           </h2>
         </div>
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-4 text-pretty text-lg leading-relaxed text-muted-foreground">
-            {about.body
-              .split('\n')
+              {localize(about.body)
+                .split('\n')
               .filter((p) => p.trim())
               .map((para, i) => (
-                <p key={i}>{para}</p>
+                <p key={i}>{localize(para)}</p>
               ))}
           </div>
 
           {about.skills.length > 0 ? (
             <div className="mt-2">
               <h3 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                {about.skillsHeading}
+                {localize(about.skillsHeading)}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {about.skills.map((s) => (

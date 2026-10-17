@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { SocialIcon } from './social-icon'
 import { sendContactEmail } from '@/app/actions/contact'
 import { toast } from 'sonner'
+import { useLanguage } from './language-provider'
 
 const EMPTY_FORM = {
   name: '',
@@ -27,7 +28,7 @@ export function ContactSection({
 }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [pending, startTransition] = useTransition()
-  const year = new Date().getFullYear()
+  const { t, localize } = useLanguage()
 
   function update<K extends keyof typeof EMPTY_FORM>(key: K, value: string) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -45,9 +46,9 @@ export function ContactSection({
       const res = await sendContactEmail(data)
       if (res.ok) {
         setForm(EMPTY_FORM)
-        toast.success('Message sent')
+        toast.success(t('contact.messageSent'))
       } else {
-        toast.error(res.error ?? 'Could not send message')
+        toast.error(res.error ?? t('contact.messageError'))
       }
     })
   }
@@ -61,11 +62,11 @@ export function ContactSection({
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-start gap-6">
               <h2 className="max-w-2xl text-balance font-serif text-4xl leading-tight tracking-tight sm:text-5xl">
-                {contact.heading}
+                {localize(contact.heading)}
               </h2>
               {contact.body ? (
                 <p className="max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                  {contact.body}
+                  {localize(contact.body)}
                 </p>
               ) : null}
               {contact.email ? (
@@ -73,7 +74,7 @@ export function ContactSection({
                   href={`mailto:${contact.email}`}
                   className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
-                  {contact.buttonLabel || 'Get in touch'}
+                  {localize(contact.buttonLabel || 'Get in touch')}
                   <ArrowUpRight className="size-4" />
                 </a>
               ) : null}
@@ -85,7 +86,7 @@ export function ContactSection({
                     target="_blank"
                     rel="noreferrer noopener"
                     className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label={s.label}
+                    aria-label={localize(s.label)}
                   >
                     <SocialIcon icon={s.icon} className="size-5" />
                   </a>
@@ -95,23 +96,23 @@ export function ContactSection({
 
             <form onSubmit={submit} className="rounded-2xl border border-border bg-background/70 p-5 shadow-sm">
               <div className="mb-5">
-                <h3 className="font-serif text-2xl tracking-tight">Send a message</h3>
+                <h3 className="font-serif text-2xl tracking-tight">{t('contact.formTitle')}</h3>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="contact-name" className="text-sm font-medium">Name</label>
+                  <label htmlFor="contact-name" className="text-sm font-medium">{t('contact.name')}</label>
                   <Input
                     id="contact-name"
                     value={form.name}
                     onChange={(e) => update('name', e.target.value)}
-                    placeholder="Your name"
+                    placeholder={t('contact.namePlaceholder')}
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="contact-email" className="text-sm font-medium">Email</label>
+                  <label htmlFor="contact-email" className="text-sm font-medium">{t('contact.emailLabel')}</label>
                   <Input
                     id="contact-email"
                     type="email"
@@ -123,29 +124,26 @@ export function ContactSection({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="contact-message" className="text-sm font-medium">Message</label>
+                  <label htmlFor="contact-message" className="text-sm font-medium">{t('contact.message')}</label>
                   <Textarea
                     id="contact-message"
                     rows={5}
                     value={form.message}
                     onChange={(e) => update('message', e.target.value)}
-                    placeholder="Tell me a bit about your project..."
+                    placeholder={t('contact.messagePlaceholder')}
                     required
                   />
                 </div>
 
                 <Button type="submit" className="w-full" disabled={pending}>
-                  {pending ? 'Sending…' : 'Send message'}
+                  {pending ? t('contact.sending') : t('contact.send')}
                 </Button>
               </div>
             </form>
         </div>
 
         <div className="mt-16 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
-          <p>
-            © {year} {contact.footerNote}
-          </p>
-          <p>{settings.footerText}</p>
+          <p>{localize(settings.footerText)}</p>
         </div>
       </div>
     </footer>

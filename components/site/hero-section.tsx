@@ -1,5 +1,8 @@
+'use client'
+
 import { ArrowDown, MapPin } from 'lucide-react'
 import type { HeroContent, SocialLink } from '@/lib/content-types'
+import { useLanguage } from './language-provider'
 import { SocialIcon } from './social-icon'
 
 export function HeroSection({
@@ -9,6 +12,8 @@ export function HeroSection({
   hero: HeroContent
   socials: SocialLink[]
 }) {
+  const { localize } = useLanguage()
+
   return (
     <section className="mx-auto max-w-5xl px-6 pt-20 pb-16 sm:pt-28 sm:pb-24">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -18,26 +23,26 @@ export function HeroSection({
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-accent" />
               </span>
-              {hero.availability}
+              {localize(hero.availability)}
             </div>
 
             <h1 className="max-w-3xl text-balance font-serif text-5xl leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-              {hero.headline}
+              {localize(hero.headline)}
             </h1>
 
             <p className="max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              {hero.intro}
+              {localize(hero.intro)}
             </p>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">
                 {hero.name}
               </span>
-              <span>{hero.role}</span>
+              <span>{localize(hero.role)}</span>
               {hero.location ? (
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="size-3.5" />
-                  {hero.location}
+                  {localize(hero.location)}
                 </span>
               ) : null}
             </div>
@@ -48,7 +53,7 @@ export function HeroSection({
                   href={hero.ctaHref || '#work'}
                   className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
-                  {hero.ctaLabel}
+                  {localize(hero.ctaLabel)}
                   <ArrowDown className="size-4" />
                 </a>
               ) : null}
@@ -57,7 +62,7 @@ export function HeroSection({
                   href={hero.secondaryCtaHref || '#contact'}
                   className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
                 >
-                  {hero.secondaryCtaLabel}
+                  {localize(hero.secondaryCtaLabel)}
                 </a>
               ) : null}
               <div className="ml-auto flex items-center gap-1">
@@ -68,7 +73,7 @@ export function HeroSection({
                     target="_blank"
                     rel="noreferrer noopener"
                     className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label={s.label}
+                    aria-label={localize(s.label)}
                   >
                     <SocialIcon icon={s.icon} className="size-4" />
                   </a>

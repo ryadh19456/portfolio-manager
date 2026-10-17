@@ -1,8 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { LanguageToggle } from '@/components/site/language-toggle'
+import { useLanguage } from '@/components/site/language-provider'
 import type { SiteSettings } from '@/lib/content-types'
 
 export function SiteHeader({ name, settings }: { name: string; settings: SiteSettings }) {
+  const { localize } = useLanguage()
   const navItems = settings.navItems?.length ? settings.navItems : [
     { label: 'Work', href: '/#work' },
     { label: 'About', href: '/#about' },
@@ -24,9 +29,10 @@ export function SiteHeader({ name, settings }: { name: string; settings: SiteSet
                   href={item.href}
                   className="hidden rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
                 >
-                  {item.label}
+                  {localize(item.label)}
                 </a>
               ))}
+              <LanguageToggle />
               <ThemeToggle />
           </nav>
         </div>

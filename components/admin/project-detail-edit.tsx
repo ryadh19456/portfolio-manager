@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import { useLanguage } from '@/components/site/language-provider'
 
 export function ProjectDetailEdit({ project }: { project: Project }) {
   const { editMode } = useAdmin()
+  const { t, localize } = useLanguage()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -78,7 +80,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : (
         <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
-          {project.title}
+          {localize(project.title)}
         </h1>
       )}
       {isEditing ? (
@@ -91,7 +93,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : project.tagline ? (
         <p className="mt-4 text-xl leading-relaxed text-muted-foreground">
-          {project.tagline}
+          {localize(project.tagline)}
         </p>
       ) : null}
       {isEditing ? (
@@ -105,7 +107,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : project.description ? (
         <p className="mt-8 text-lg leading-relaxed text-muted-foreground">
-          {project.description}
+          {localize(project.description)}
         </p>
       ) : null}
       {isEditing ? (
@@ -119,7 +121,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : project.content ? (
         <div className="mt-8 whitespace-pre-wrap border-t border-border pt-8 leading-relaxed text-muted-foreground">
-          {project.content}
+          {localize(project.content)}
         </div>
       ) : null}
       {editMode ? (
@@ -128,17 +130,17 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
             <>
               <Button onClick={save} disabled={pending || !text.title.trim()}>
                 <Check />
-                {pending ? 'Saving…' : 'Save text'}
+                {pending ? 'Saving…' : t('project.saveText')}
               </Button>
               <Button variant="outline" onClick={cancel} disabled={pending}>
                 <X />
-                Cancel
+                {t('project.cancel')}
               </Button>
             </>
           ) : (
             <Button variant="outline" onClick={() => setEditing(true)}>
               <Pencil />
-              Edit text here
+              {t('project.editText')}
             </Button>
           )}
         </div>

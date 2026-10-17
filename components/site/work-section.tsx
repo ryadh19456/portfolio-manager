@@ -11,6 +11,7 @@ import { ProjectEditor } from '@/components/admin/editors/project-editor'
 import { Button } from '@/components/ui/button'
 import { moveProject } from '@/app/actions/content'
 import { toast } from 'sonner'
+import { useLanguage } from './language-provider'
 
 export function WorkSection({
   projects,
@@ -20,6 +21,7 @@ export function WorkSection({
   settings: SiteSettings
 }) {
   const { editMode } = useAdmin()
+  const { t, localize } = useLanguage()
   const [addOpen, setAddOpen] = useState(false)
   const [, startTransition] = useTransition()
 
@@ -35,18 +37,18 @@ export function WorkSection({
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
-            {settings.workHeading}
+            {localize(settings.workHeading)}
           </h2>
           {settings.workSubheading ? (
             <p className="mt-2 text-muted-foreground">
-              {settings.workSubheading}
+              {localize(settings.workSubheading)}
             </p>
           ) : null}
         </div>
         {editMode ? (
           <Button onClick={() => setAddOpen(true)} className="gap-2">
             <Plus className="size-4" />
-            Add project
+            {t('work.add')}
           </Button>
         ) : null}
       </div>
@@ -54,8 +56,8 @@ export function WorkSection({
       {projects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border py-16 text-center text-muted-foreground">
           {editMode
-            ? 'No projects yet. Click “Add project” to create your first one.'
-            : 'Projects coming soon.'}
+            ? t('work.noProjectsEdit')
+            : t('work.noProjects')}
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2">

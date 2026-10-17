@@ -9,6 +9,7 @@ import { ProjectEditor } from '@/components/admin/editors/project-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useLanguage } from './language-provider'
 
 /* Projects only. Editable via ProjectEditor. */
 
@@ -24,6 +25,7 @@ export function ProjectCard({
   isLast?: boolean
 }) {
   const { editMode } = useAdmin()
+  const { t, localize } = useLanguage()
   const [open, setOpen] = useState(false)
 
   return (
@@ -44,19 +46,19 @@ export function ProjectCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={project.imageUrl || '/placeholder.svg'}
-              alt={`${project.title} preview`}
+              alt={`${localize(project.title)} preview`}
               className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
           ) : (
             <div className="flex size-full items-center justify-center">
               <span className="font-serif text-2xl text-muted-foreground/50">
-                {project.title}
+                {localize(project.title)}
               </span>
             </div>
           )}
           {project.featured ? (
             <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium backdrop-blur">
-              Featured
+              {t('project.featured')}
             </span>
           ) : null}
         </div>
@@ -65,12 +67,12 @@ export function ProjectCard({
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="font-serif text-xl tracking-tight">
-                {project.title}
+                {localize(project.title)}
               </h3>
               {project.year ? (
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {project.year}
-                  {project.role ? ` · ${project.role}` : ''}
+                  {project.role ? ` · ${localize(project.role)}` : ''}
                 </p>
               ) : null}
             </div>
@@ -78,7 +80,7 @@ export function ProjectCard({
           </div>
 
           <p className="line-clamp-2 text-pretty text-sm leading-relaxed text-muted-foreground">
-            {project.tagline || project.description}
+            {localize(project.tagline || project.description)}
           </p>
 
           {project.tech.length > 0 ? (
@@ -97,7 +99,7 @@ export function ProjectCard({
         <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/50 px-4 py-2">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <GripVertical className="size-3.5" />
-            {!project.published ? 'Draft' : `Order ${project.sortOrder}`}
+            {!project.published ? t('edit.draft') : `${t('edit.order')} ${project.sortOrder}`}
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -106,7 +108,7 @@ export function ProjectCard({
               disabled={isFirst}
               onClick={() => onReorder?.('up')}
             >
-              Up
+              {t('edit.up')}
             </Button>
             <Button
               size="sm"
@@ -114,10 +116,10 @@ export function ProjectCard({
               disabled={isLast}
               onClick={() => onReorder?.('down')}
             >
-              Down
+              {t('edit.down')}
             </Button>
             <Button size="sm" onClick={() => setOpen(true)}>
-              Edit
+              {t('edit.edit')}
             </Button>
           </div>
         </div>
