@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Trash2 } from 'lucide-react'
 import {
   Sheet,
@@ -29,6 +30,7 @@ export function SocialsEditor({
   onOpenChange: (v: boolean) => void
   socials: SocialLink[]
 }) {
+  const router = useRouter()
   const [rows, setRows] = useState<Row[]>(
     socials.map((s) => ({ label: s.label, url: s.url, icon: s.icon })),
   )
@@ -45,6 +47,7 @@ export function SocialsEditor({
       if (res.ok) {
         toast.success('Social links saved')
         onOpenChange(false)
+        router.refresh()
       } else {
         toast.error(res.error ?? 'Could not save')
       }

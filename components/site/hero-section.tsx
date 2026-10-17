@@ -1,6 +1,10 @@
 'use client'
 
-import { ArrowDown, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowDown, MapPin, Pencil } from 'lucide-react'
+import { SocialsEditor } from '@/components/admin/editors/socials-editor'
+import { useAdmin } from '@/components/admin/admin-provider'
+import { Button } from '@/components/ui/button'
 import type { HeroContent, SocialLink } from '@/lib/content-types'
 import { useLanguage } from './language-provider'
 import { SocialIcon } from './social-icon'
@@ -13,6 +17,8 @@ export function HeroSection({
   socials: SocialLink[]
 }) {
   const { localize } = useLanguage()
+  const { editMode } = useAdmin()
+  const [socialsEditorOpen, setSocialsEditorOpen] = useState(false)
 
   return (
     <section className="mx-auto max-w-5xl px-6 pt-20 pb-16 sm:pt-28 sm:pb-24">
@@ -78,6 +84,18 @@ export function HeroSection({
                     <SocialIcon icon={s.icon} className="size-4" />
                   </a>
                 ))}
+                {editMode ? (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label="Edit social links"
+                    title="Edit social links"
+                    onClick={() => setSocialsEditorOpen(true)}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -90,6 +108,11 @@ export function HeroSection({
             </div>
           ) : null}
       </div>
+      <SocialsEditor
+        open={socialsEditorOpen}
+        onOpenChange={setSocialsEditorOpen}
+        socials={socials}
+      />
     </section>
   )
 }
