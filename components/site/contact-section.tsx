@@ -30,7 +30,9 @@ export function ContactSection({
 }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [pending, startTransition] = useTransition()
-  const { t, localize } = useLanguage()
+  const { t, localize, translateContent } = useLanguage()
+  const displayedContact = translateContent(contact)
+  const displayedSettings = translateContent(settings)
   const [editorOpen, setEditorOpen] = useState(false)
 
   function update<K extends keyof typeof EMPTY_FORM>(key: K, value: string) {
@@ -66,35 +68,38 @@ export function ContactSection({
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-start gap-6">
               <h2 className="max-w-2xl text-balance font-serif text-4xl leading-tight tracking-tight sm:text-5xl">
-                {localize(contact.heading)}
+                {localize(displayedContact.heading)}
               </h2>
-              {contact.body ? (
+              {displayedContact.body ? (
                 <p className="max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                  {localize(contact.body)}
+                  {localize(displayedContact.body)}
                 </p>
               ) : null}
-              {contact.email ? (
+              {displayedContact.email ? (
                 <a
-                  href={`mailto:${contact.email}`}
+                  href={`mailto:${displayedContact.email}`}
                   className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
-                  {localize(contact.buttonLabel || 'Get in touch')}
+                  {localize(displayedContact.buttonLabel || 'Get in touch')}
                   <ArrowUpRight className="size-4" />
                 </a>
               ) : null}
               <div className="mt-2 flex items-center gap-1">
-                {socials.map((s) => (
+                {socials.map((s) => {
+                  const displayedSocial = translateContent(s)
+                  return (
                   <a
                     key={s.id}
                     href={s.url}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label={localize(s.label)}
+                    aria-label={localize(displayedSocial.label)}
                   >
                     <SocialIcon icon={s.icon} className="size-5" />
                   </a>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
@@ -147,7 +152,7 @@ export function ContactSection({
         </div>
 
         <div className="mt-16 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
-          <p>{localize(settings.footerText)}</p>
+          <p>{localize(displayedSettings.footerText)}</p>
         </div>
       </div>
     </footer>

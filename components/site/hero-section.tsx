@@ -18,8 +18,9 @@ export function HeroSection({
   hero: HeroContent
   socials: SocialLink[]
 }) {
-  const { localize } = useLanguage()
+  const { localize, translateContent } = useLanguage()
   const { editMode } = useAdmin()
+  const displayedHero = translateContent(hero)
   const [heroEditorOpen, setHeroEditorOpen] = useState(false)
   const [socialsEditorOpen, setSocialsEditorOpen] = useState(false)
 
@@ -33,61 +34,64 @@ export function HeroSection({
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-accent" />
               </span>
-              {localize(hero.availability)}
+              {localize(displayedHero.availability)}
             </div>
 
             <h1 className="max-w-3xl text-balance font-serif text-5xl leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-              {localize(hero.headline)}
+              {localize(displayedHero.headline)}
             </h1>
 
             <p className="max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              {localize(hero.intro)}
+              {localize(displayedHero.intro)}
             </p>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">
-                {hero.name}
+                {displayedHero.name}
               </span>
-              <span>{localize(hero.role)}</span>
-              {hero.location ? (
+              <span>{localize(displayedHero.role)}</span>
+              {displayedHero.location ? (
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="size-3.5" />
-                  {localize(hero.location)}
+                  {localize(displayedHero.location)}
                 </span>
               ) : null}
             </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              {hero.ctaLabel ? (
+              {displayedHero.ctaLabel ? (
                 <a
-                  href={hero.ctaHref || '#work'}
+                  href={displayedHero.ctaHref || '#work'}
                   className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
-                  {localize(hero.ctaLabel)}
+                  {localize(displayedHero.ctaLabel)}
                   <ArrowDown className="size-4" />
                 </a>
               ) : null}
-              {hero.secondaryCtaLabel ? (
+              {displayedHero.secondaryCtaLabel ? (
                 <a
-                  href={hero.secondaryCtaHref || '#contact'}
+                  href={displayedHero.secondaryCtaHref || '#contact'}
                   className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
                 >
-                  {localize(hero.secondaryCtaLabel)}
+                  {localize(displayedHero.secondaryCtaLabel)}
                 </a>
               ) : null}
               <div className="ml-auto flex items-center gap-1">
-                {socials.map((s) => (
+                {socials.map((s) => {
+                  const displayedSocial = translateContent(s)
+                  return (
                   <a
                     key={s.id}
                     href={s.url}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label={localize(s.label)}
+                    aria-label={localize(displayedSocial.label)}
                   >
                     <SocialIcon icon={s.icon} className="size-4" />
                   </a>
-                ))}
+                  )
+                })}
                 {editMode ? (
                   <Button
                     type="button"
@@ -104,10 +108,10 @@ export function HeroSection({
             </div>
           </div>
 
-          {hero.avatarUrl ? (
+          {displayedHero.avatarUrl ? (
             <div className="relative shrink-0">
               <div className="h-48 w-48 overflow-hidden rounded-full border border-border bg-secondary shadow-sm sm:h-56 sm:w-56">
-                <img src={hero.avatarUrl} alt={hero.name || 'Profile'} className="h-full w-full object-cover" />
+                <img src={displayedHero.avatarUrl} alt={displayedHero.name || 'Profile'} className="h-full w-full object-cover" />
               </div>
             </div>
           ) : null}

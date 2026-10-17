@@ -132,6 +132,7 @@ type LanguageContextValue = {
   setLanguage: (language: Language) => void
   t: (key: string) => string
   localize: (value: string) => string
+  translateContent: <T,>(content: T) => T
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null)
@@ -150,11 +151,36 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem("site-language", language)
   }, [language])
 
+  function translateContent<T>(content: T): T {
+    if (language !== "ar") return content
+    if (typeof content === "string") return (contentTranslations.get(content) ?? content) as T
+    if (Array.isArray(content)) return content.map(translateContent) as T
+    if (!content || typeof content !== "object") return content
+
+    const record = content as Record<string, unknown>
+    const translationsByLanguage = record.translations as Record<string, unknown> | undefined
+    const arabicOverrides = translationsByLanguage?.ar as Record<string, unknown> | undefined
+    const translated = Object.fromEntries(
+      Object.entries(record)
+        .filter(([key]) => key !== "translations")
+        .map(([key, value]) => [key, translateContent(value)]),
+    )
+
+    return {
+      ...translated,
+      ...Object.fromEntries(
+        Object.entries(arabicOverrides ?? {}).map(([key, value]) => [key, translateContent(value)]),
+      ),
+      ...(translationsByLanguage ? { translations: translationsByLanguage } : {}),
+    } as T
+  }
+
   const value: LanguageContextValue = {
     language,
     setLanguage,
     t: (key) => language === "ar" ? translations[key] ?? key : englishTranslations[key] ?? key,
     localize: (text) => language === "ar" ? contentTranslations.get(text) ?? text : text,
+    translateContent,
   }
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>

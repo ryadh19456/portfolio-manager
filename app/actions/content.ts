@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/admin-auth"
 import { nextId, readData, writeData } from "@/lib/db/json/store"
-import type { ContentKey, Project, SiteSettings } from "@/lib/content-types"
+import type { ContentKey, ContentLanguage, Project, SiteSettings } from "@/lib/content-types"
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -21,19 +21,32 @@ function uniqueSlug(projects: Project[], desired: string, ignoreId?: number) {
   return candidate
 }
 
-export async function saveContent(key: ContentKey, patch: Record<string, unknown>): Promise<ActionResult> {
+export async function saveContent(key: ContentKey, patch: Record<string, unknown>, language: ContentLanguage = "en"): Promise<ActionResult> {
   await requireEditor()
   const data = await readData()
-  data.site_content[key] = { ...(data.site_content[key] ?? {}), ...patch }
+  const { translations: _translations, ...fields } = patch
+  const current = data.site_content[key] ?? {}
+  if (language === "ar") {
+    const translations = current.translations as Record<string, Record<string, unknown>> | undefined
+    data.site_content[key] = {
+      ...current,
+      translations: {
+        ...translations,
+        ar: { ...(translations?.ar ?? {}), ...fields },
+      },
+    }
+  } else {
+    data.site_content[key] = { ...current, ...fields }
+  }
   await writeData(data)
   refresh()
   return { ok: true }
 }
 
-export async function saveHero(patch: Record<string, unknown>) { return saveContent("hero", patch) }
-export async function saveAbout(patch: Record<string, unknown>) { return saveContent("about", patch) }
-export async function saveContact(patch: Record<string, unknown>) { return saveContent("contact", patch) }
-export async function saveSettings(patch: SiteSettings) { return saveContent("settings", patch) }
+export async function saveHero(patch: Record<string, unknown>, language: ContentLanguage = "en") { return saveContent("hero", patch, language) }
+export async function saveAbout(patch: Record<string, unknown>, language: ContentLanguage = "en") { return saveContent("about", patch, language) }
+export async function saveContact(patch: Record<string, unknown>, language: ContentLanguage = "en") { return saveContent("contact", patch, language) }
+export async function saveSettings(patch: SiteSettings, language: ContentLanguage = "en") { return saveContent("settings", patch, language) }
 
 export type ProjectInput = {
   id?: number
@@ -52,9 +65,33 @@ export type ProjectInput = {
   published?: boolean
 }
 
-export async function saveProject(input: ProjectInput): Promise<ActionResult> {
+export async function saveProject(input: ProjectInput, language: ContentLanguage = "en"): Promise<ActionResult> {
   await requireEditor()
   const data = await readData()
+  if (language === "ar") {
+    if (!input.id) return { ok: false, error: "Create projects in English mode first" }
+    const index = data.projects.findIndex((item) => item.id === input.id)
+    if (index === -1) return { ok: false, error: "Project not found" }
+    const project = data.projects[index]
+    project.translations = {
+      ...project.translations,
+      ar: {
+        ...project.translations?.ar,
+        title: input.title,
+        tagline: input.tagline ?? "",
+        description: input.description ?? "",
+        content: input.content ?? "",
+        tech: input.tech ?? [],
+        year: input.year ?? "",
+        role: input.role ?? "",
+      },
+    }
+    project.updatedAt = new Date().toISOString()
+    await writeData(data)
+    refresh()
+    return { ok: true }
+  }
+
   const title = input.title.trim() || "Untitled project"
   const project = {
     title,
@@ -129,9 +166,29 @@ export async function reorderProjects(orderedIds: number[]): Promise<ActionResul
 
 export type ExperienceInput = { id?: number; role: string; company?: string; location?: string; period?: string; description?: string; url?: string | null }
 
-export async function saveExperience(input: ExperienceInput): Promise<ActionResult> {
+export async function saveExperience(input: ExperienceInput, language: ContentLanguage = "en"): Promise<ActionResult> {
   await requireEditor()
   const data = await readData()
+  if (language === "ar") {
+    if (!input.id) return { ok: false, error: "Create experience entries in English mode first" }
+    const entry = data.experience.find((item) => item.id === input.id)
+    if (!entry) return { ok: false, error: "Experience not found" }
+    entry.translations = {
+      ...entry.translations,
+      ar: {
+        ...entry.translations?.ar,
+        role: input.role,
+        company: input.company ?? "",
+        location: input.location ?? "",
+        period: input.period ?? "",
+        description: input.description ?? "",
+      },
+    }
+    await writeData(data)
+    refresh()
+    return { ok: true }
+  }
+
   const entry = { role: input.role.trim() || "Untitled role", company: input.company ?? "", location: input.location ?? "", period: input.period ?? "", description: input.description ?? "", url: input.url ?? null }
   if (input.id) {
     const index = data.experience.findIndex((item) => item.id === input.id)
@@ -171,9 +228,24 @@ export async function reorderExperience(orderedIds: number[]): Promise<ActionRes
 
 export type SocialInput = { label: string; url?: string; icon?: string }
 
-export async function saveSocials(rows: SocialInput[]): Promise<ActionResult> {
+export async function saveSocials(rows: SocialInput[], language: ContentLanguage = "en"): Promise<ActionResult> {
   await requireEditor()
   const data = await readData()
+  if (language === "ar") {
+    const orderedLinks = [...data.social_links].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+    if (rows.length !== orderedLinks.length) return { ok: false, error: "Social links can only be added or removed in English mode" }
+    data.social_links = orderedLinks.map((link, index) => ({
+      ...link,
+      translations: {
+        ...link.translations,
+        ar: { ...link.translations?.ar, label: rows[index].label.trim() || "Link" },
+      },
+    }))
+    await writeData(data)
+    refresh()
+    return { ok: true }
+  }
+
   data.social_links = rows.map((row, index) => ({ label: row.label.trim() || "Link", url: row.url ?? "", icon: row.icon ?? "link", id: index + 1, sortOrder: index, createdAt: new Date().toISOString() }))
   await writeData(data)
   refresh()

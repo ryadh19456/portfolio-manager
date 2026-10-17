@@ -1,6 +1,6 @@
 import "server-only"
 
-import { DEFAULT_ABOUT, DEFAULT_CONTACT, DEFAULT_HERO, DEFAULT_SETTINGS, type About, type Contact, type Hero, type Settings } from "@/lib/content-types"
+import { DEFAULT_ABOUT, DEFAULT_CONTACT, DEFAULT_HERO, DEFAULT_SETTINGS, type AboutContent, type ContactContent, type HeroContent, type SiteSettings } from "@/lib/content-types"
 import { readData } from "@/lib/db/json/store"
 
 async function readContent<T>(key: string, fallback: T): Promise<T> {
@@ -8,10 +8,10 @@ async function readContent<T>(key: string, fallback: T): Promise<T> {
   return value ? { ...fallback, ...value } : fallback
 }
 
-export function getHero() { return readContent<Hero>("hero", DEFAULT_HERO) }
-export function getAbout() { return readContent<About>("about", DEFAULT_ABOUT) }
-export function getContact() { return readContent<Contact>("contact", DEFAULT_CONTACT) }
-export function getSettings() { return readContent<Settings>("settings", DEFAULT_SETTINGS) }
+export function getHero() { return readContent<HeroContent>("hero", DEFAULT_HERO) }
+export function getAbout() { return readContent<AboutContent>("about", DEFAULT_ABOUT) }
+export function getContact() { return readContent<ContactContent>("contact", DEFAULT_CONTACT) }
+export function getSettings() { return readContent<SiteSettings>("settings", DEFAULT_SETTINGS) }
 
 export async function getAllProjects() {
   return (await readData()).projects.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)

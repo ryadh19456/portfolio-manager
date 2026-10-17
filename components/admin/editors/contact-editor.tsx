@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import type { ContactContent } from '@/lib/content-types'
 import { saveContact } from '@/app/actions/content'
 import { toast } from 'sonner'
+import { useLanguage } from '@/components/site/language-provider'
 
 export function ContactEditor({
   open,
@@ -28,12 +29,13 @@ export function ContactEditor({
   contact: ContactContent
 }) {
   const router = useRouter()
-  const [form, setForm] = useState<ContactContent>(contact)
+  const { language, translateContent } = useLanguage()
+  const [form, setForm] = useState<ContactContent>(() => translateContent(contact))
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (open) setForm(contact)
-  }, [open, contact])
+    if (open) setForm(translateContent(contact))
+  }, [open, contact, language])
 
   function set<K extends keyof ContactContent>(k: K, v: ContactContent[K]) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -41,7 +43,7 @@ export function ContactEditor({
 
   function save() {
     startTransition(async () => {
-      const res = await saveContact(form)
+      const res = await saveContact(form, language)
       if (res.ok) {
         toast.success('Contact updated')
         onOpenChange(false)

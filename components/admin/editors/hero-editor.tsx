@@ -18,6 +18,7 @@ import type { HeroContent } from '@/lib/content-types'
 import { saveHero } from '@/app/actions/content'
 import { toast } from 'sonner'
 import { ImagePicker } from './image-picker'
+import { useLanguage } from '@/components/site/language-provider'
 
 export function HeroEditor({
   open,
@@ -29,12 +30,13 @@ export function HeroEditor({
   hero: HeroContent
 }) {
   const router = useRouter()
-  const [form, setForm] = useState<HeroContent>(hero)
+  const { language, translateContent } = useLanguage()
+  const [form, setForm] = useState<HeroContent>(() => translateContent(hero))
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (open) setForm(hero)
-  }, [open, hero])
+    if (open) setForm(translateContent(hero))
+  }, [open, hero, language])
 
   function set<K extends keyof HeroContent>(key: K, value: HeroContent[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -42,7 +44,7 @@ export function HeroEditor({
 
   function save() {
     startTransition(async () => {
-      const res = await saveHero(form)
+      const res = await saveHero(form, language)
       if (res.ok) {
         toast.success('Intro updated')
         onOpenChange(false)

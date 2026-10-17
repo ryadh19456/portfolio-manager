@@ -20,6 +20,7 @@ import type { Project } from '@/lib/content-types'
 import { deleteProject, saveProject } from '@/app/actions/content'
 import { ImagePicker } from './image-picker'
 import { toast } from 'sonner'
+import { useLanguage } from '@/components/site/language-provider'
 
 type FormState = {
   title: string
@@ -71,6 +72,8 @@ export function ProjectEditor({
   project: Project | null
 }) {
   const router = useRouter()
+  const { language, translateContent } = useLanguage()
+  const editorLanguage = project ? language : 'en'
   const [form, setForm] = useState<FormState>(EMPTY)
   const [slugTouched, setSlugTouched] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -82,24 +85,29 @@ export function ProjectEditor({
       setForm(
         project
           ? {
-              title: project.title,
+              ...(() => {
+                const translated = translateContent(project)
+                return {
+              title: translated.title,
               slug: project.slug,
-              tagline: project.tagline,
-              description: project.description,
-              content: project.content,
-              techText: project.tech.join(', '),
+              tagline: translated.tagline,
+              description: translated.description,
+              content: translated.content,
+              techText: translated.tech.join(', '),
               imageUrl: project.imageUrl,
               liveUrl: project.liveUrl ?? '',
               repoUrl: project.repoUrl ?? '',
-              year: project.year,
-              role: project.role,
+              year: translated.year,
+              role: translated.role,
               featured: project.featured,
               published: project.published,
+                }
+              })(),
             }
           : EMPTY,
       )
     }
-  }, [open, project])
+  }, [open, project, language])
 
   function set<K extends keyof FormState>(k: K, v: FormState[K]) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -135,7 +143,7 @@ export function ProjectEditor({
           role: form.role,
           featured: form.featured,
           published: form.published,
-        })
+        }, editorLanguage)
         if (res.ok) {
           toast.success(project ? 'Project updated' : 'Project added')
           onOpenChange(false)
@@ -170,7 +178,7 @@ export function ProjectEditor({
           <SheetTitle>{project ? 'Edit project' : 'Add project'}</SheetTitle>
           <SheetDescription>
             {project
-              ? 'Update the details for this project.'
+              ? `Update the ${editorLanguage === 'ar' ? 'Arabic' : 'English'} details for this project.`
               : 'Fill in the details for your new project.'}
           </SheetDescription>
         </SheetHeader>

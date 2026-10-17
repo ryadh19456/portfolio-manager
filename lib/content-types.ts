@@ -1,4 +1,8 @@
-/* Projects only. Type definitions for Project and SiteSettings. */
+export type ContentLanguage = "en" | "ar"
+
+export type Translated<T> = T & {
+  translations?: Partial<Record<ContentLanguage, Partial<T>>>
+}
 
 export type Hero = {
   name: string
@@ -48,12 +52,12 @@ export type Settings = {
   navItems: NavItem[]
 }
 
-export type HeroContent = Hero
-export type AboutContent = About
-export type ContactContent = Contact
-export type SiteSettings = Settings
+export type HeroContent = Translated<Hero>
+export type AboutContent = Translated<About>
+export type ContactContent = Translated<Contact>
+export type SiteSettings = Translated<Settings>
 
-export type Project = {
+export type Project = Translated<{
   id: number
   slug: string
   title: string
@@ -71,9 +75,9 @@ export type Project = {
   sortOrder: number
   createdAt: Date | string | null
   updatedAt: Date | string | null
-}
+}>
 
-export type Experience = {
+export type Experience = Translated<{
   id: number
   role: string
   company: string
@@ -83,16 +87,16 @@ export type Experience = {
   url: string | null
   sortOrder: number
   createdAt: Date | string | null
-}
+}>
 
-export type SocialLink = {
+export type SocialLink = Translated<{
   id: number
   label: string
   url: string
   icon: string
   sortOrder: number
   createdAt: Date | string | null
-}
+}>
 
 export const DEFAULT_HERO: Hero = {
   name: "Ryad Hejazy",

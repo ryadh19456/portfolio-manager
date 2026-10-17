@@ -25,8 +25,9 @@ export function ProjectCard({
   isLast?: boolean
 }) {
   const { editMode } = useAdmin()
-  const { t, localize } = useLanguage()
+  const { t, localize, translateContent } = useLanguage()
   const [open, setOpen] = useState(false)
+  const displayedProject = translateContent(project)
 
   return (
     <article
@@ -46,13 +47,13 @@ export function ProjectCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={project.imageUrl || '/placeholder.svg'}
-              alt={`${localize(project.title)} preview`}
+              alt={`${localize(displayedProject.title)} preview`}
               className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
           ) : (
             <div className="flex size-full items-center justify-center">
               <span className="font-serif text-2xl text-muted-foreground/50">
-                {localize(project.title)}
+                {localize(displayedProject.title)}
               </span>
             </div>
           )}
@@ -67,12 +68,12 @@ export function ProjectCard({
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="font-serif text-xl tracking-tight">
-                {localize(project.title)}
+                {localize(displayedProject.title)}
               </h3>
-              {project.year ? (
+              {displayedProject.year ? (
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {project.year}
-                  {project.role ? ` · ${localize(project.role)}` : ''}
+                  {displayedProject.year}
+                  {displayedProject.role ? ` · ${localize(displayedProject.role)}` : ''}
                 </p>
               ) : null}
             </div>
@@ -80,12 +81,12 @@ export function ProjectCard({
           </div>
 
           <p className="line-clamp-2 text-pretty text-sm leading-relaxed text-muted-foreground">
-            {localize(project.tagline || project.description)}
+            {localize(displayedProject.tagline || displayedProject.description)}
           </p>
 
-          {project.tech.length > 0 ? (
+          {displayedProject.tech.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-1.5">
-              {project.tech.slice(0, 4).map((t) => (
+              {displayedProject.tech.slice(0, 4).map((t) => (
                 <Badge key={t} variant="secondary" className="font-normal">
                   {t}
                 </Badge>

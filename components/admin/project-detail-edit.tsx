@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Check, Pencil, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { Project } from '@/lib/content-types'
@@ -14,25 +14,43 @@ import { useLanguage } from '@/components/site/language-provider'
 
 export function ProjectDetailEdit({ project }: { project: Project }) {
   const { editMode } = useAdmin()
-  const { t, localize } = useLanguage()
+  const { t, language, localize, translateContent } = useLanguage()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [pending, startTransition] = useTransition()
-  const [text, setText] = useState(() => ({
-    title: project.title,
-    tagline: project.tagline,
-    description: project.description,
-    content: project.content,
-  }))
+  const [text, setText] = useState(() => {
+    const translated = translateContent(project)
+    return {
+      title: translated.title,
+      tagline: translated.tagline,
+      description: translated.description,
+      content: translated.content,
+    }
+  })
+
+  useEffect(() => {
+    const translated = translateContent(project)
+    setText({
+      title: translated.title,
+      tagline: translated.tagline,
+      description: translated.description,
+      content: translated.content,
+    })
+  }, [project, language])
 
   const isEditing = editMode && editing
 
   function cancel() {
     setText({
-      title: project.title,
-      tagline: project.tagline,
-      description: project.description,
-      content: project.content,
+        ...(() => {
+          const translated = translateContent(project)
+          return {
+            title: translated.title,
+            tagline: translated.tagline,
+            description: translated.description,
+            content: translated.content,
+          }
+        })(),
     })
     setEditing(false)
   }
@@ -55,7 +73,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
           role: project.role,
           featured: project.featured,
           published: project.published,
-        })
+        }, language)
         if (!result.ok) {
           toast.error(result.error ?? 'Could not save project')
           return
@@ -80,7 +98,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : (
         <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
-          {localize(project.title)}
+          {localize(translateContent(project).title)}
         </h1>
       )}
       {isEditing ? (
@@ -93,7 +111,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : project.tagline ? (
         <p className="mt-4 text-xl leading-relaxed text-muted-foreground">
-          {localize(project.tagline)}
+          {localize(translateContent(project).tagline)}
         </p>
       ) : null}
       {isEditing ? (
@@ -107,7 +125,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : project.description ? (
         <p className="mt-8 text-lg leading-relaxed text-muted-foreground">
-          {localize(project.description)}
+          {localize(translateContent(project).description)}
         </p>
       ) : null}
       {isEditing ? (
@@ -121,7 +139,7 @@ export function ProjectDetailEdit({ project }: { project: Project }) {
         />
       ) : project.content ? (
         <div className="mt-8 whitespace-pre-wrap border-t border-border pt-8 leading-relaxed text-muted-foreground">
-          {localize(project.content)}
+          {localize(translateContent(project).content)}
         </div>
       ) : null}
       {editMode ? (

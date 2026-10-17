@@ -21,7 +21,8 @@ export function WorkSection({
   settings: SiteSettings
 }) {
   const { editMode } = useAdmin()
-  const { t, localize } = useLanguage()
+  const { t, localize, translateContent } = useLanguage()
+  const displayedSettings = translateContent(settings)
   const [addOpen, setAddOpen] = useState(false)
   const [, startTransition] = useTransition()
 
@@ -37,11 +38,11 @@ export function WorkSection({
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
-            {localize(settings.workHeading)}
+            {localize(displayedSettings.workHeading)}
           </h2>
-          {settings.workSubheading ? (
+          {displayedSettings.workSubheading ? (
             <p className="mt-2 text-muted-foreground">
-              {localize(settings.workSubheading)}
+              {localize(displayedSettings.workSubheading)}
             </p>
           ) : null}
         </div>

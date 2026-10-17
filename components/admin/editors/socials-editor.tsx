@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2 } from 'lucide-react'
 import {
@@ -18,6 +18,7 @@ import type { SocialLink } from '@/lib/content-types'
 import { saveSocials } from '@/app/actions/content'
 import { SOCIAL_ICON_OPTIONS, SocialIcon } from '@/components/site/social-icon'
 import { toast } from 'sonner'
+import { useLanguage } from '@/components/site/language-provider'
 
 type Row = { label: string; url: string; icon: string }
 
@@ -31,10 +32,23 @@ export function SocialsEditor({
   socials: SocialLink[]
 }) {
   const router = useRouter()
+  const { language, translateContent } = useLanguage()
   const [rows, setRows] = useState<Row[]>(
-    socials.map((s) => ({ label: s.label, url: s.url, icon: s.icon })),
+    socials.map((social) => {
+      const translated = translateContent(social)
+      return { label: translated.label, url: translated.url, icon: translated.icon }
+    }),
   )
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (open) {
+      setRows(socials.map((social) => {
+        const translated = translateContent(social)
+        return { label: translated.label, url: translated.url, icon: translated.icon }
+      }))
+    }
+  }, [open, socials, language])
 
   function update(i: number, patch: Partial<Row>) {
     setRows((r) => r.map((row, idx) => (idx === i ? { ...row, ...patch } : row)))
@@ -43,7 +57,7 @@ export function SocialsEditor({
   function save() {
     const cleaned = rows.filter((r) => r.label.trim() && r.url.trim())
     startTransition(async () => {
-      const res = await saveSocials(cleaned)
+      const res = await saveSocials(cleaned, language)
       if (res.ok) {
         toast.success('Social links saved')
         onOpenChange(false)
@@ -75,7 +89,7 @@ export function SocialsEditor({
                   <SocialIcon icon={row.icon} className="size-4" />
                   {row.label || 'New link'}
                 </span>
-                <Button
+                {language === 'en' ? <Button
                   size="icon"
                   variant="ghost"
                   className="size-7 text-muted-foreground hover:text-destructive"
@@ -83,7 +97,7 @@ export function SocialsEditor({
                   aria-label="Remove link"
                 >
                   <Trash2 className="size-4" />
-                </Button>
+                </Button> : null}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
@@ -99,6 +113,7 @@ export function SocialsEditor({
                     value={row.icon}
                     onChange={(e) => update(i, { icon: e.target.value })}
                     className="h-9 rounded-md border border-input bg-transparent px-3 text-sm capitalize"
+                    disabled={language === 'ar'}
                   >
                     {SOCIAL_ICON_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>
@@ -114,12 +129,13 @@ export function SocialsEditor({
                   placeholder="https://…"
                   value={row.url}
                   onChange={(e) => update(i, { url: e.target.value })}
+                  disabled={language === 'ar'}
                 />
               </div>
             </div>
           ))}
 
-          <Button
+          {language === 'en' ? <Button
             variant="outline"
             className="gap-2"
             onClick={() =>
@@ -128,7 +144,7 @@ export function SocialsEditor({
           >
             <Plus className="size-4" />
             Add link
-          </Button>
+          </Button> : null}
         </div>
 
         <SheetFooter>

@@ -19,9 +19,10 @@ export function ProjectDetailView({
   project: Project
   settings: SiteSettings
 }) {
-  const { t, localize } = useLanguage()
+  const { t, localize, translateContent } = useLanguage()
   const { editMode } = useAdmin()
   const [projectEditorOpen, setProjectEditorOpen] = useState(false)
+  const displayedProject = translateContent(project)
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -40,7 +41,7 @@ export function ProjectDetailView({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={project.imageUrl}
-              alt={`${localize(project.title)} preview`}
+              alt={`${localize(displayedProject.title)} preview`}
               className="aspect-[16/7] w-full rounded-2xl border border-border object-cover"
             />
           ) : null}
@@ -48,8 +49,8 @@ export function ProjectDetailView({
           <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_280px]">
             <div>
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                {project.year ? <span>{project.year}</span> : null}
-                {project.role ? <span>· {localize(project.role)}</span> : null}
+                {displayedProject.year ? <span>{displayedProject.year}</span> : null}
+                {displayedProject.role ? <span>· {localize(displayedProject.role)}</span> : null}
                 {project.featured ? <Badge>{t('project.featured')}</Badge> : null}
                 {editMode ? (
                   <Button
@@ -68,13 +69,13 @@ export function ProjectDetailView({
             </div>
 
             <aside className="flex flex-col gap-6 border-t border-border pt-6 lg:border-s lg:border-t-0 lg:ps-6">
-              {project.tech.length > 0 ? (
+              {displayedProject.tech.length > 0 ? (
                 <div>
                   <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                     {t('project.builtWith')}
                   </h2>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {project.tech.map((technology) => (
+                    {displayedProject.tech.map((technology) => (
                       <Badge key={technology} variant="secondary">
                         {technology}
                       </Badge>

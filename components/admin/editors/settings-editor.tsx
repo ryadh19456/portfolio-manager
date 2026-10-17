@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
+import { useLanguage } from '@/components/site/language-provider'
 import type { SiteSettings } from '@/lib/content-types'
 import { saveSettings } from '@/app/actions/content'
 import { toast } from 'sonner'
@@ -30,12 +31,13 @@ export function SettingsEditor({
   settings: SiteSettings
 }) {
   const router = useRouter()
-  const [form, setForm] = useState<SiteSettings>(settings)
+  const { language, translateContent } = useLanguage()
+  const [form, setForm] = useState<SiteSettings>(() => translateContent(settings))
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (open) setForm(settings)
-  }, [open, settings])
+    if (open) setForm(translateContent(settings))
+  }, [open, settings, language])
 
   function set<K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -43,7 +45,7 @@ export function SettingsEditor({
 
   function save() {
     startTransition(async () => {
-      const res = await saveSettings(form)
+      const res = await saveSettings(form, language)
       if (res.ok) {
         toast.success('Settings saved')
         onOpenChange(false)

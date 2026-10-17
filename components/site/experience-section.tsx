@@ -8,6 +8,7 @@ import { ExperienceEditor } from '@/components/admin/editors/experience-editor'
 import { Button } from '@/components/ui/button'
 import { deleteExperience } from '@/app/actions/content'
 import { toast } from 'sonner'
+import { useLanguage } from './language-provider'
 
 export function ExperienceSection({
   experience,
@@ -17,6 +18,7 @@ export function ExperienceSection({
   settings: SiteSettings
 }) {
   const { editMode } = useAdmin()
+  const { language, translateContent } = useLanguage()
   const [editing, setEditing] = useState<Experience | null | 'new'>(null)
   const [, startTransition] = useTransition()
 
@@ -37,7 +39,7 @@ export function ExperienceSection({
         <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
           {settings.experienceHeading}
         </h2>
-        {editMode ? (
+        {editMode && language === 'en' ? (
           <Button onClick={() => setEditing('new')} className="gap-2">
             <Plus className="size-4" />
             Add entry
@@ -46,7 +48,9 @@ export function ExperienceSection({
       </div>
 
       <ol className="flex flex-col">
-        {experience.map((job) => (
+        {experience.map((entry) => {
+          const job = translateContent(entry)
+          return (
           <li
             key={job.id}
             className="grid grid-cols-1 gap-2 border-t border-border py-6 first:border-t-0 sm:grid-cols-[180px_1fr]"
@@ -79,19 +83,20 @@ export function ExperienceSection({
                   <Button size="sm" variant="outline" onClick={() => setEditing(job)}>
                     Edit
                   </Button>
-                  <Button
+                  {language === 'en' ? <Button
                     size="sm"
                     variant="ghost"
                     className="text-destructive hover:text-destructive"
                     onClick={() => remove(job.id)}
                   >
                     Delete
-                  </Button>
+                  </Button> : null}
                 </div>
               ) : null}
             </div>
           </li>
-        ))}
+          )
+        })}
       </ol>
 
       <ExperienceEditor

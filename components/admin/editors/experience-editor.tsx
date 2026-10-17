@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import type { Experience } from '@/lib/content-types'
 import { saveExperience } from '@/app/actions/content'
 import { toast } from 'sonner'
+import { useLanguage } from '@/components/site/language-provider'
 
 const EMPTY = {
   role: '',
@@ -34,24 +35,28 @@ export function ExperienceEditor({
   onOpenChange: (v: boolean) => void
   entry: Experience | null
 }) {
-  const [form, setForm] = useState(EMPTY)
+  const { language, translateContent } = useLanguage()
+  const [form, setForm] = useState(() => entry ? translateContent(entry) : EMPTY)
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
     if (open) {
       setForm(
         entry
-          ? {
-              role: entry.role,
-              company: entry.company,
-              location: entry.location,
-              period: entry.period,
-              description: entry.description,
-            }
+          ? (() => {
+              const translated = translateContent(entry)
+              return {
+                role: translated.role,
+                company: translated.company,
+                location: translated.location,
+                period: translated.period,
+                description: translated.description,
+              }
+            })()
           : EMPTY,
       )
     }
-  }, [open, entry])
+  }, [open, entry, language])
 
   function set(k: keyof typeof EMPTY, v: string) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -59,7 +64,7 @@ export function ExperienceEditor({
 
   function save() {
     startTransition(async () => {
-      const res = await saveExperience({ id: entry?.id, ...form })
+      const res = await saveExperience({ id: entry?.id, ...form }, entry ? language : 'en')
       if (res.ok) {
         toast.success(entry ? 'Entry updated' : 'Entry added')
         onOpenChange(false)

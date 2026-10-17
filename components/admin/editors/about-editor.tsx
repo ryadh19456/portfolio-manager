@@ -18,6 +18,7 @@ import type { AboutContent } from '@/lib/content-types'
 import { saveAbout } from '@/app/actions/content'
 import { toast } from 'sonner'
 import { ImagePicker } from './image-picker'
+import { useLanguage } from '@/components/site/language-provider'
 
 export function AboutEditor({
   open,
@@ -29,15 +30,19 @@ export function AboutEditor({
   about: AboutContent
 }) {
   const router = useRouter()
+  const { language, translateContent } = useLanguage()
   const [form, setForm] = useState({
-    ...about,
-    skillsText: about.skills.join(', '),
+    ...translateContent(about),
+    skillsText: translateContent(about.skills).join(', '),
   })
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (open) setForm({ ...about, skillsText: about.skills.join(', ') })
-  }, [open, about])
+    if (open) {
+      const translated = translateContent(about)
+      setForm({ ...translated, skillsText: translated.skills.join(', ') })
+    }
+  }, [open, about, language])
 
   function save() {
     const skills = form.skillsText
@@ -51,7 +56,7 @@ export function AboutEditor({
         skillsHeading: form.skillsHeading,
         skills,
         photoUrl: form.photoUrl ?? null,
-      })
+      }, language)
       if (res.ok) {
         toast.success('About updated')
         onOpenChange(false)
