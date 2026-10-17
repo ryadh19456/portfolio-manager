@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
@@ -28,8 +29,13 @@ export function SettingsEditor({
   onOpenChange: (v: boolean) => void
   settings: SiteSettings
 }) {
+  const router = useRouter()
   const [form, setForm] = useState<SiteSettings>(settings)
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (open) setForm(settings)
+  }, [open, settings])
 
   function set<K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -41,6 +47,7 @@ export function SettingsEditor({
       if (res.ok) {
         toast.success('Settings saved')
         onOpenChange(false)
+        router.refresh()
       } else {
         toast.error(res.error ?? 'Could not save')
       }

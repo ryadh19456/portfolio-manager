@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
@@ -27,8 +28,13 @@ export function HeroEditor({
   onOpenChange: (v: boolean) => void
   hero: HeroContent
 }) {
+  const router = useRouter()
   const [form, setForm] = useState<HeroContent>(hero)
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (open) setForm(hero)
+  }, [open, hero])
 
   function set<K extends keyof HeroContent>(key: K, value: HeroContent[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -40,6 +46,7 @@ export function HeroEditor({
       if (res.ok) {
         toast.success('Intro updated')
         onOpenChange(false)
+        router.refresh()
       } else {
         toast.error(res.error ?? 'Could not save')
       }

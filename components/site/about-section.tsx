@@ -3,11 +3,16 @@
 import type { AboutContent } from '@/lib/content-types'
 import { Badge } from '@/components/ui/badge'
 import { useLanguage } from './language-provider'
+import { useState } from 'react'
+import { AboutEditor } from '@/components/admin/editors/about-editor'
+import { Editable } from '@/components/admin/editable'
 
 export function AboutSection({ about }: { about: AboutContent }) {
   const { localize } = useLanguage()
+  const [editorOpen, setEditorOpen] = useState(false)
 
   return (
+    <Editable label="about" onEdit={() => setEditorOpen(true)}>
     <section
       id="about"
       className="mx-auto max-w-5xl scroll-mt-20 border-t border-border px-6 py-16"
@@ -55,5 +60,7 @@ export function AboutSection({ about }: { about: AboutContent }) {
       </div>
 
     </section>
+    <AboutEditor open={editorOpen} onOpenChange={setEditorOpen} about={about} />
+    </Editable>
   )
 }

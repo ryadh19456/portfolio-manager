@@ -10,6 +10,8 @@ import { SocialIcon } from './social-icon'
 import { sendContactEmail } from '@/app/actions/contact'
 import { toast } from 'sonner'
 import { useLanguage } from './language-provider'
+import { ContactEditor } from '@/components/admin/editors/contact-editor'
+import { Editable } from '@/components/admin/editable'
 
 const EMPTY_FORM = {
   name: '',
@@ -29,6 +31,7 @@ export function ContactSection({
   const [form, setForm] = useState(EMPTY_FORM)
   const [pending, startTransition] = useTransition()
   const { t, localize } = useLanguage()
+  const [editorOpen, setEditorOpen] = useState(false)
 
   function update<K extends keyof typeof EMPTY_FORM>(key: K, value: string) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -54,6 +57,7 @@ export function ContactSection({
   }
 
   return (
+    <Editable label="contact" onEdit={() => setEditorOpen(true)}>
     <footer
       id="contact"
       className="scroll-mt-20 border-t border-border bg-secondary/30"
@@ -147,5 +151,7 @@ export function ContactSection({
         </div>
       </div>
     </footer>
+    <ContactEditor open={editorOpen} onOpenChange={setEditorOpen} contact={contact} />
+    </Editable>
   )
 }

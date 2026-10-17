@@ -1,12 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, ArrowUpRight, Code2, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, ArrowUpRight, Code2, ExternalLink, Pencil } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ProjectEditor } from '@/components/admin/editors/project-editor'
 import { ProjectDetailEdit } from '@/components/admin/project-detail-edit'
 import type { Project, SiteSettings } from '@/lib/content-types'
 import { useLanguage } from './language-provider'
 import { SiteHeader } from './site-header'
+import { useAdmin } from '@/components/admin/admin-provider'
 
 export function ProjectDetailView({
   project,
@@ -16,6 +20,8 @@ export function ProjectDetailView({
   settings: SiteSettings
 }) {
   const { t, localize } = useLanguage()
+  const { editMode } = useAdmin()
+  const [projectEditorOpen, setProjectEditorOpen] = useState(false)
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -45,6 +51,18 @@ export function ProjectDetailView({
                 {project.year ? <span>{project.year}</span> : null}
                 {project.role ? <span>· {localize(project.role)}</span> : null}
                 {project.featured ? <Badge>{t('project.featured')}</Badge> : null}
+                {editMode ? (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label="Edit project details"
+                    title="Edit project details"
+                    onClick={() => setProjectEditorOpen(true)}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                ) : null}
               </div>
               <ProjectDetailEdit project={project} />
             </div>
@@ -98,6 +116,11 @@ export function ProjectDetailView({
           {t('project.all')} <ArrowUpRight className="size-4" />
         </Link>
       </div>
+      <ProjectEditor
+        open={projectEditorOpen}
+        onOpenChange={setProjectEditorOpen}
+        project={project}
+      />
     </main>
   )
 }

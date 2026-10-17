@@ -1,13 +1,20 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
+import { Pencil } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageToggle } from '@/components/site/language-toggle'
 import { useLanguage } from '@/components/site/language-provider'
+import { useAdmin } from '@/components/admin/admin-provider'
+import { SettingsEditor } from '@/components/admin/editors/settings-editor'
+import { Button } from '@/components/ui/button'
 import type { SiteSettings } from '@/lib/content-types'
 
 export function SiteHeader({ name, settings }: { name: string; settings: SiteSettings }) {
   const { localize } = useLanguage()
+  const { editMode } = useAdmin()
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const navItems = settings.navItems?.length ? settings.navItems : [
     { label: 'Work', href: '/#work' },
     { label: 'About', href: '/#about' },
@@ -32,11 +39,28 @@ export function SiteHeader({ name, settings }: { name: string; settings: SiteSet
                   {localize(item.label)}
                 </a>
               ))}
+              {editMode ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Edit site settings"
+                  title="Edit site settings"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+              ) : null}
               <LanguageToggle />
               <ThemeToggle />
           </nav>
         </div>
       </header>
+      <SettingsEditor
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={settings}
+      />
     </>
   )
 }

@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { ArrowDown, MapPin, Pencil } from 'lucide-react'
+import { HeroEditor } from '@/components/admin/editors/hero-editor'
 import { SocialsEditor } from '@/components/admin/editors/socials-editor'
 import { useAdmin } from '@/components/admin/admin-provider'
 import { Button } from '@/components/ui/button'
+import { Editable } from '@/components/admin/editable'
 import type { HeroContent, SocialLink } from '@/lib/content-types'
 import { useLanguage } from './language-provider'
 import { SocialIcon } from './social-icon'
@@ -18,9 +20,11 @@ export function HeroSection({
 }) {
   const { localize } = useLanguage()
   const { editMode } = useAdmin()
+  const [heroEditorOpen, setHeroEditorOpen] = useState(false)
   const [socialsEditorOpen, setSocialsEditorOpen] = useState(false)
 
   return (
+    <Editable label="intro" onEdit={() => setHeroEditorOpen(true)}>
     <section className="mx-auto max-w-5xl px-6 pt-20 pb-16 sm:pt-28 sm:pb-24">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 flex-col gap-6">
@@ -114,5 +118,11 @@ export function HeroSection({
         socials={socials}
       />
     </section>
+    <HeroEditor
+      open={heroEditorOpen}
+      onOpenChange={setHeroEditorOpen}
+      hero={hero}
+    />
+    </Editable>
   )
 }

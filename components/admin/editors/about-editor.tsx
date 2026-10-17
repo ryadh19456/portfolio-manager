@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
@@ -27,11 +28,16 @@ export function AboutEditor({
   onOpenChange: (v: boolean) => void
   about: AboutContent
 }) {
+  const router = useRouter()
   const [form, setForm] = useState({
     ...about,
     skillsText: about.skills.join(', '),
   })
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (open) setForm({ ...about, skillsText: about.skills.join(', ') })
+  }, [open, about])
 
   function save() {
     const skills = form.skillsText
@@ -49,6 +55,7 @@ export function AboutEditor({
       if (res.ok) {
         toast.success('About updated')
         onOpenChange(false)
+        router.refresh()
       } else {
         toast.error(res.error ?? 'Could not save')
       }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
@@ -26,8 +27,13 @@ export function ContactEditor({
   onOpenChange: (v: boolean) => void
   contact: ContactContent
 }) {
+  const router = useRouter()
   const [form, setForm] = useState<ContactContent>(contact)
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (open) setForm(contact)
+  }, [open, contact])
 
   function set<K extends keyof ContactContent>(k: K, v: ContactContent[K]) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -39,6 +45,7 @@ export function ContactEditor({
       if (res.ok) {
         toast.success('Contact updated')
         onOpenChange(false)
+        router.refresh()
       } else {
         toast.error(res.error ?? 'Could not save')
       }
