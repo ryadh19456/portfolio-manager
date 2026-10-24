@@ -22,17 +22,25 @@ const notoArabic = Noto_Sans_Arabic({ subsets: ['arabic', 'latin'], variable: '-
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings()
+  const titleVariants = [settings.siteTitle, 'Ryad Hejazy', 'رياض حجازي'].filter((value, index, array) => value && array.indexOf(value) === index)
+  const descriptionVariants = [settings.siteDescription, 'Programmer and Information Technology student', 'مبرمج وطالب تقنية معلومات']
+
   return {
     metadataBase: getSiteUrl(),
-    title: settings.siteTitle,
-    description: settings.siteDescription,
+    title: titleVariants.join(' | '),
+    description: descriptionVariants.filter((value, index, array) => value && array.indexOf(value) === index).join(' — '),
     generator: 'v0.app',
+    keywords: ['Ryad Hejazy', 'رياض حجازي', 'portfolio', 'مبرمج', 'programmer', 'developer'],
     alternates: {
       canonical: '/',
+      languages: {
+        en: '/',
+        ar: '/',
+      },
     },
     openGraph: {
-      title: settings.siteTitle,
-      description: settings.siteDescription,
+      title: titleVariants.join(' | '),
+      description: descriptionVariants.filter((value, index, array) => value && array.indexOf(value) === index).join(' — '),
       type: 'website',
       url: '/',
     },

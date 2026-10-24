@@ -129,15 +129,15 @@ export const DEFAULT_CONTACT: Contact = {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  siteTitle: "Portfolio",
-  siteDescription: "My portfolio",
+  siteTitle: "Ryad Hejazy",
+  siteDescription: "Programmer and Information Technology student building reliable, user-focused software.",
   workHeading: "Selected Work",
-  workSubheading: "",
+  workSubheading: "Recent work across software development, mobile apps, and web applications.",
   experienceHeading: "Experience",
   showExperience: true,
   showAbout: true,
   showContact: true,
-  footerText: "All rights reserved.",
+  footerText: "© 2026 Ryad Hejazy",
   navItems: [
     { label: "Work", href: "/#work" },
     { label: "About", href: "/#about" },

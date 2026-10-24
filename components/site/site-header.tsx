@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { Pencil } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -10,6 +11,7 @@ import { useAdmin } from '@/components/admin/admin-provider'
 import { SettingsEditor } from '@/components/admin/editors/settings-editor'
 import { Button } from '@/components/ui/button'
 import type { SiteSettings } from '@/lib/content-types'
+import logo from '@/assets/logo.png'
 
 export function SiteHeader({ name, settings }: { name: string; settings: SiteSettings }) {
   const { localize, translateContent } = useLanguage()
@@ -26,8 +28,18 @@ export function SiteHeader({ name, settings }: { name: string; settings: SiteSet
     <>
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-          <Link href="/" className="font-serif text-lg tracking-tight text-foreground">
-            {displayedSettings.siteTitle || localize(name)}
+          <Link href="/" className="flex items-center gap-3 text-foreground">
+            <Image
+              src={logo}
+              alt={`${displayedSettings.siteTitle || localize(name)} logo`}
+              width={120}
+              height={48}
+              priority
+              className="h-10 w-auto object-contain"
+            />
+            <span className="font-serif text-lg tracking-tight">
+              {displayedSettings.siteTitle || localize(name)}
+            </span>
           </Link>
 
           <nav className="flex items-center gap-1 text-sm">
